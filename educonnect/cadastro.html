@@ -9,6 +9,7 @@
 </head>
 
 <body class="light">
+  <script>document.body.className = localStorage.getItem('edu_theme') || 'light';</script>
   <aside class="sidebar" id="sidebar">
     <h1 class="logo">
       <span class="edu">Edu</span><span class="connect">Connect</span>
@@ -19,14 +20,15 @@
       <a href="#" id="logoutLink2">Sair</a>
     </nav>
     <div class="sidebar-footer">
-      <button id="themeBtn2" class="btn ghost small">Tema</button>
     </div>
   </aside>
+  <div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
 
   <main class="main">
     <header class="header">
       <button id="menuToggle2" class="btn ghost">☰</button>
       <div class="header-right">
+        <button id="themeBtnHeader2" class="btn ghost small">☼ Tema</button>
         <div id="userGreeting2">Olá, Usuário</div>
       </div>
     </header>
@@ -47,11 +49,21 @@
           </div>
           <div class="row">
             <div class="col">
+              <label>Sobrenome</label>
+              <input id="sobrenome">
+            </div>
+            <div class="col">
               <label>Tipo</label>
               <select id="tipo">
-                <option value="aluno">Aluno</option>
-                <option value="professor">Professor</option>
+                <option value="Aluno">Aluno</option>
+                <option value="Professor">Professor</option>
               </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label>CPF</label>
+              <input id="cpf" placeholder="00000000000" required>
             </div>
             <div class="col">
               <label>Turma</label>
