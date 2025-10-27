@@ -9,12 +9,13 @@
 </head>
 
 <body class="light">
+  <script>document.body.className = localStorage.getItem('edu_theme') || 'light';</script>
   <div class="centered">
     <div class="card login-card">
       <h1 class="logo">
         <span class="edu">Edu</span><span class="connect">Connect</span>
       </h1>
-      <p class="muted">Sistema de gestão escolar - Login</p>
+      <p class="muted">Faça Log-in para continuar</p>
       <form id="loginForm">
         <label for="email">E‑mail</label>
         <input id="email" type="email" placeholder="seu@exemplo.com" required>
@@ -25,7 +26,6 @@
           <button type="button" id="toggleTheme" class="btn ghost">Tema</button>
         </div>
       </form>
-      <p class="muted small">Use <strong>admin@edu.com / 1234</strong> ou cadastre um usuário na página Cadastro.</p>
     </div>
   </div>
   <script src="assets/js/login.js"></script>
