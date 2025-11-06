@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EduConnect - Cadastro</title>
+  <title>EduConnect - Cadastro Professor</title>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
@@ -16,8 +16,10 @@
     </h1>
     <nav>
       <a href="dashboard.html">Dashboard</a>
-      <a href="cadastro.html" class="active">Cadastro</a>
-  <a href="#" id="logoutLink">Sair</a>
+      <a href="cadastro-aluno.html">Aluno</a>
+      <a href="cadastro-professor.html" class="active">Professor</a>
+      <a href="calendario.html">Painel</a>
+      <a href="#" id="logoutLink">Sair</a>
     </nav>
     <div class="sidebar-footer">
     </div>
@@ -25,65 +27,32 @@
   <div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
 
   <main class="main">
-      <header class="header">
+    <header class="header">
       <button id="menuToggle" class="btn ghost">☰</button>
       <div class="header-right">
         <button id="themeBtnHeader" class="btn ghost small">☼ Tema</button>
         <div class="header-notif">
           <button id="notifBtn" class="btn ghost small" aria-haspopup="true" aria-expanded="false">🔔 <span id="notifCount" class="small muted">0</span></button>
           <div id="notifDropdown" class="card hidden notif-dropdown" role="menu" aria-hidden="true">
+            <div class="space-between" style="align-items:center; margin-bottom:8px;">
+              <strong>Notificações</strong>
+              <div>
+                <button id="markAllReadBtn" class="btn ghost small">Marcar todas lidas</button>
+                <button id="clearAllNotifsBtn" class="btn ghost small">Limpar</button>
+              </div>
+            </div>
             <div id="notifList" class="muted small">Sem notificações</div>
+            <div style="margin-top:8px; text-align:center;"><button id="showAllNotifs" class="btn ghost small">Mostrar todos</button></div>
           </div>
         </div>
-  <div id="userGreeting">Olá, Usuário</div>
+        <div id="userGreeting">Olá, Usuário</div>
       </div>
     </header>
 
     <section class="container">
       <div class="card">
-        <h2>Cadastro de Pessoas</h2>
-        <div class="tabs">
-          <button id="tabAluno" class="btn small">Cadastro Aluno</button>
-          <button id="tabProfessor" class="btn small ghost">Cadastro Professor</button>
-        </div>
-        <form id="cadFormAluno" class="tab-form">
-          <div class="row">
-            <div class="col">
-              <label>Nome</label>
-              <input id="nome_a" required>
-              <div class="error" id="err_nome_a"></div>
-            </div>
-            <div class="col">
-              <label>E-mail</label>
-              <input id="email_a" type="email" required>
-              <div class="error" id="err_email_a"></div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col">
-              <label>Sobrenome</label>
-              <input id="sobrenome_a">
-            </div>
-            <div class="col">
-              <label>Turma</label>
-              <input id="turma_a" placeholder="Ex: 3A" required>
-              <div class="error" id="err_turma_a"></div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col">
-              <label>CPF</label>
-              <input id="cpf_a" placeholder="00000000000" required>
-              <div class="error" id="err_cpf_a"></div>
-            </div>
-          </div>
-          <div class="row space-between">
-            <button type="submit" class="btn primary">Salvar Aluno</button>
-            <button type="button" id="clearAluno" class="btn ghost">Limpar</button>
-          </div>
-        </form>
-
-        <form id="cadFormProfessor" class="tab-form hidden">
+        <h2>Cadastro de Professores</h2>
+        <form id="cadFormProfessor" class="tab-form">
           <div class="row">
             <div class="col">
               <label>Nome</label>
@@ -102,11 +71,15 @@
               <input id="sobrenome_p">
             </div>
             <div class="col">
-              <label>Área / Departamento</label>
-              <input id="dept_p" placeholder="Ex: Matemática">
+              <label>Turmas (separar por vírgula)</label>
+              <input id="turmas_p" placeholder="Ex: 3A,3B,2C">
             </div>
           </div>
           <div class="row">
+            <div class="col">
+              <label>Matérias (separar por vírgula)</label>
+              <input id="materias_p" placeholder="Ex: Matemática, Física">
+            </div>
             <div class="col">
               <label>CPF</label>
               <input id="cpf_p" placeholder="00000000000">
@@ -121,9 +94,9 @@
       </div>
 
       <div class="card">
-        <h2>Listagem</h2>
+        <h2>Listagem de Professores</h2>
         <div class="row space-between">
-          <input id="filterInput" placeholder="Filtrar por nome ou tipo">
+          <input id="filterInput" placeholder="Filtrar por nome, turma ou matéria">
           <button id="exportBtn" class="btn ghost small">Exportar (JSON)</button>
         </div>
         <table id="listTable">
@@ -131,8 +104,8 @@
             <tr>
               <th>Nome</th>
               <th>E-mail</th>
-              <th>Tipo</th>
-              <th>Turma</th>
+              <th>Turmas</th>
+              <th>Matérias</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -141,6 +114,19 @@
       </div>
     </section>
   </main>
+
+  <!-- Modal para exibir senha gerada -->
+  <div id="passwordModal" class="hidden modal-overlay" aria-hidden="true">
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
+      <h3 id="passwordModalTitle">Senha padrão criada</h3>
+      <p>Usuário: <strong id="pwUserEmail"></strong></p>
+      <p>Senha: <code id="pwText"></code></p>
+      <div class="row" style="justify-content:flex-end;margin-top:12px;">
+        <button id="pwCopyBtn" class="btn small ghost">Copiar</button>
+        <button id="pwCloseBtn" class="btn primary">Fechar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/js/notifications.js"></script>
   <script src="assets/js/header-controls.js"></script>

@@ -14,9 +14,11 @@
       </h1>
     <nav>
       <a href="dashboard.html" class="active">Dashboard</a>
-      <a href="cadastro.html">Cadastro</a>
+      <a href="cadastro-aluno.html">Aluno</a>
+      <a href="cadastro-professor.html">Professor</a>
+      <a href="calendario.html">Painel</a>
       <a href="#" id="logoutLink">Sair</a>
-    </nav>
+    </nav> 
     <div class="sidebar-footer">
     </div>
   </aside>
@@ -27,6 +29,20 @@
       <button id="menuToggle" class="btn ghost">☰</button>
       <div class="header-right">
         <button id="themeBtnHeader" class="btn ghost small">☼ Tema</button>
+        <div class="header-notif">
+          <button id="notifBtn" class="btn ghost small" aria-haspopup="true" aria-expanded="false">🔔 <span id="notifCount" class="small muted">0</span></button>
+          <div id="notifDropdown" class="card hidden notif-dropdown" role="menu" aria-hidden="true">
+            <div class="space-between" style="align-items:center; margin-bottom:8px;">
+              <strong>Notificações</strong>
+              <div>
+                <button id="markAllReadBtn" class="btn ghost small">Marcar todas lidas</button>
+                <button id="clearAllNotifsBtn" class="btn ghost small">Limpar</button>
+              </div>
+            </div>
+            <div id="notifList" class="muted small">Sem notificações</div>
+            <div style="margin-top:8px; text-align:center;"><button id="showAllNotifs" class="btn ghost small">Mostrar todos</button></div>
+          </div>
+        </div>
         <div id="userGreeting">Olá, Usuário</div>
       </div>
     </header>
@@ -43,12 +59,12 @@
         </div>
         <div class="card stat">
           <h3 id="countClasses">0</h3>
-          <p>Turmas (sim)</p>
+          <p>Turmas</p>
         </div>
       </div>
 
       <div class="card">
-        <h2>Desempenho (simulado)</h2>
+        <h2>Desempenho</h2>
         <canvas id="barChart" width="600" height="180"></canvas>
       </div>
 
@@ -61,6 +77,9 @@
     </section>
   </main>
 
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/header-controls.js"></script>
   <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/cadastro.js"></script>
 </body>
 </html>
