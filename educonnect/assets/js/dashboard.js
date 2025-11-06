@@ -116,54 +116,15 @@
   const sidebarThemeBtn = document.getElementById('themeBtn');
   if(sidebarThemeBtn){
     sidebarThemeBtn.addEventListener('click', ()=>{
-      const next = document.body.className==='light' ? 'dark' : 'light';
-      document.body.className = next;
+      const next = document.body.classList.contains('light') ? 'dark' : 'light';
+      document.body.classList.remove('light','dark');
+      document.body.classList.add(next);
       localStorage.setItem('edu_theme', next);
       drawChart();
     });
   }
 
-  const themeHeaderBtn = document.getElementById('themeBtnHeader');
-  if(themeHeaderBtn){
-    themeHeaderBtn.addEventListener('click', ()=>{
-      const next = document.body.className==='light' ? 'dark' : 'light';
-      document.body.className = next;
-      localStorage.setItem('edu_theme', next);
-      drawChart();
-    });
-  }
-
-  const menuToggle = document.getElementById('menuToggle');
-  const overlay = document.getElementById('sidebarOverlay');
-  function toggleSidebar(){
-    const body = document.body;
-    body.classList.toggle('sidebar-collapsed');
-  }
-  if(menuToggle){
-    menuToggle.addEventListener('click', (e)=>{ e.stopPropagation(); toggleSidebar(); });
-  }
-  if(overlay){
-    overlay.addEventListener('click', ()=>{ document.body.classList.add('sidebar-collapsed'); });
-  }
-  document.addEventListener('click', (ev)=>{
-    const sidebar = document.getElementById('sidebar');
-    if(window.innerWidth <= 900 && sidebar && !document.body.classList.contains('sidebar-collapsed')){
-      const isInside = ev.target.closest && ev.target.closest('#sidebar');
-      const isToggle = ev.target.closest && ev.target.closest('#menuToggle');
-      if(!isInside && !isToggle){
-        document.body.classList.add('sidebar-collapsed');
-      }
-    }
-  });
-
-  const logoutEl = document.getElementById('logoutLink');
-  if(logoutEl){
-    logoutEl.addEventListener('click', (e)=>{
-      e.preventDefault();
-      localStorage.removeItem('edu_currentUser');
-      window.location.href = 'index.html';
-    });
-  }
+  // header/theme/sidebar/logout are handled centrally by assets/js/header-controls.js
 
   setInterval(()=>{ refreshCounts(); drawChart(); }, 1000);
 

@@ -288,3 +288,67 @@ td {
 .hidden {
   display: none;
 }
+
+/* =========================
+   Notification dropdown
+   - Prevents the notification panel from overflowing the viewport
+   - Adds internal scrolling and word-wrapping for long strings
+   ========================= */
+.notif-dropdown,
+#notifDropdown {
+  position: absolute;
+  right: 12px;
+  top: 48px;
+  min-width: 260px;
+  max-width: 420px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(6, 18, 32, 0.95);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  z-index: 9999;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  -webkit-overflow-scrolling: touch;
+}
+
+.notif-dropdown .notif-item,
+#notifDropdown .notif-item {
+  display: block;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.5em; /* visually limit lines (~3 lines) */
+  line-height: 1.4;
+}
+
+.notif-dropdown .notif-item:last-child,
+#notifDropdown .notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-dropdown .notif-title,
+#notifDropdown .notif-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.notif-dropdown .notif-body,
+#notifDropdown .notif-body {
+  color: #9fb0c8;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .notif-dropdown, #notifDropdown {
+    right: 8px;
+    left: 8px;
+    top: 56px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 110px);
+  }
+}

@@ -1,0 +1,197 @@
+/* Scope all calendar styles to pages that have body.calendar-page to avoid global conflicts */
+body.calendar-page.dark {
+  --bg: #18181b;
+  --card-bg: #27272a;
+  --text: #f1f1f1;
+  --accent: #3b82f6;
+}
+
+body.calendar-page {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+}
+
+.calendar-page .calendar-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 5px;
+}
+
+.calendar-page .calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.calendar-page .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+.calendar-page .calendar-weekday {
+  text-align: center;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.calendar-page .calendar-cell {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: right;
+  min-height: 80px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.calendar-page .calendar-cell:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+.calendar-page .calendar-cell.has-event {
+  border: 2px solid var(--accent);
+}
+.calendar-page .event-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.calendar-page .events-panel {
+  margin-top: 30px;
+  background: var(--card);
+  padding: 15px;
+  border-radius: 10px;
+}
+.calendar-page .events-panel ul {
+  list-style: none;
+  padding: 0;
+}
+.calendar-page .events-panel li {
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Scope generic modal rules to calendar page only to avoid interfering with app-wide modals */
+.calendar-page .modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+.calendar-page .modal.show {
+  display: flex;
+}
+.calendar-page .modal-content {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 10px;
+  width: 360px;
+}
+.calendar-page .modal-content input,
+.calendar-page .modal-content textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: var(--bg);
+  color: var(--text);
+}
+.calendar-page .modal-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Specific tweaks for the calendar event modal only (scoped to calendar page) */
+#event-modal.calendar-page,
+body.calendar-page #event-modal {
+  background: rgba(2, 6, 23, 0.7);
+  z-index: 12000;
+}
+
+body.calendar-page #event-modal .modal-content {
+  width: 420px;
+  max-width: calc(100% - 32px);
+  padding: 20px 18px;
+  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.6);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+body.calendar-page #event-modal .modal-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.125rem;
+}
+body.calendar-page #event-modal .modal-content label {
+  display: block;
+  margin: 8px 0 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+body.calendar-page #event-modal .modal-content input[type="date"],
+body.calendar-page #event-modal .modal-content input[type="text"],
+body.calendar-page #event-modal .modal-content textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: var(--card-bg);
+  color: var(--text);
+  box-shadow: none;
+}
+
+body.calendar-page.dark #event-modal .modal-content input[type="date"],
+body.calendar-page.dark #event-modal .modal-content input[type="text"],
+body.calendar-page.dark #event-modal .modal-content textarea {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* overlay variations for light/dark so modal backdrop reads well */
+body.calendar-page #event-modal.modal {
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 12000;
+}
+body.calendar-page.dark #event-modal.modal {
+  background: rgba(2, 6, 23, 0.7);
+}
+
+body.calendar-page #event-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+body.calendar-page #event-modal .modal-actions .btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* make date control visually consistent */
+body.calendar-page
+  #event-modal
+  .modal-content
+  input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9) brightness(1.2);
+}
+
+@media (max-width: 760px) {
+  .calendar-page .calendar-container {
+    padding: 12px;
+  }
+  .calendar-page .modal-content {
+    width: 92%;
+  }
+  .calendar-page .calendar-grid {
+    gap: 6px;
+  }
+}

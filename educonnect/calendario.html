@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduConnect | Calendário</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/calendario.css" />
+</head>
+  <body>
+    <script>
+      // preserve other body classes and add page marker
+      document.body.classList.add(localStorage.getItem('edu_theme') || 'light');
+      document.body.classList.add('calendar-page');
+    </script>
+    <aside class="sidebar" id="sidebar">
+      <h1 class="logo"><span class="edu">Edu</span><span class="connect">Connect</span></h1>
+      <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="cadastro-aluno.html">Aluno</a>
+        <a href="cadastro-professor.html">Professor</a>
+        <a href="calendario.html" class="active">Painel</a>
+        <a href="#" id="logoutLink">Sair</a>
+      </nav>
+      <div class="sidebar-footer"></div>
+    </aside>
+    <div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
+
+    <main class="main">
+      <header class="header">
+        <button id="menuToggle" class="btn ghost">☰</button>
+        <div class="header-right">
+          <button id="themeBtnHeader" class="btn ghost small">☼ Tema</button>
+          <div class="header-notif">
+            <button id="notifBtn" class="btn ghost small" aria-haspopup="true" aria-expanded="false">🔔 <span id="notifCount" class="small muted">0</span></button>
+            <div id="notifDropdown" class="card hidden notif-dropdown" role="menu" aria-hidden="true">
+              <div class="space-between" style="align-items:center; margin-bottom:8px;">
+                <strong>Notificações</strong>
+                <div>
+                  <button id="markAllReadBtn" class="btn ghost small">Marcar todas lidas</button>
+                  <button id="clearAllNotifsBtn" class="btn ghost small">Limpar</button>
+                </div>
+              </div>
+              <div id="notifList" class="muted small">Sem notificações</div>
+              <div style="margin-top:8px; text-align:center;"><button id="showAllNotifs" class="btn ghost small">Mostrar todos</button></div>
+            </div>
+          </div>
+          <div id="userGreeting">Olá, Usuário</div>
+        </div>
+      </header>
+
+      <section class="container">
+        <h1>Painel — Calendário</h1>
+
+        <div class="card">
+          <div class="calendar-header" style="align-items:center;">
+            <button id="prev-month" class="btn ghost small">◀</button>
+            <h2 id="month-year" style="margin:0 12px;"></h2>
+            <button id="next-month" class="btn ghost small">▶</button>
+          </div>
+
+          <div class="calendar-grid" id="calendar"></div>
+        </div>
+
+        <div class="events-panel card" style="margin-top:12px;">
+          <h3>Eventos Próximos</h3>
+          <ul id="upcoming-events"></ul>
+          <div style="margin-top:8px;"><button id="add-event-btn" class="btn">Adicionar evento</button></div>
+        </div>
+      </section>
+    </main>
+
+  <!-- Modal de novo evento -->
+  <div class="modal" id="event-modal">
+    <div class="modal-content card">
+      <h3>Novo Evento</h3>
+      <label>Data:</label>
+      <input type="date" id="event-date" />
+      <label>Título:</label>
+      <input type="text" id="event-title" placeholder="Título do evento" />
+      <label>Descrição:</label>
+      <textarea id="event-desc" placeholder="Descrição (opcional)"></textarea>
+      <div class="modal-actions">
+        <button id="save-event" class="btn primary">Salvar</button>
+        <button id="close-modal" class="btn ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/header-controls.js"></script>
+  <script src="assets/js/calendario.js"></script>
+  <script src="assets/js/cadastro.js"></script>
+</body>
+</html>
