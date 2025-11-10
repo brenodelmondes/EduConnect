@@ -52,6 +52,20 @@ body.calendar-page {
 .calendar-page .calendar-cell.has-event {
   border: 2px solid var(--accent);
 }
+.calendar-page .calendar-cell.is-today {
+  box-shadow: 0 0 0 2px var(--accent) inset, 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+.calendar-page .calendar-cell.is-today::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.85;
+}
 .calendar-page .event-dot {
   width: 8px;
   height: 8px;

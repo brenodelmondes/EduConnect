@@ -16,7 +16,10 @@
   const sobrenomeAluno = document.getElementById('sobrenome_a');
   const raAluno = document.getElementById('ra_a');
   const emailAluno = document.getElementById('email_a');
-  const turmaAluno = document.getElementById('turma_a');
+  // novo modelo: curso/status substituem turma
+  const cursoAluno = document.getElementById('curso_a');
+  const statusAluno = document.getElementById('status_a');
+  const turmaAluno = document.getElementById('turma_a'); // legado (fallback)
   const cpfAluno = document.getElementById('cpf_a');
 
   // professor inputs
@@ -24,7 +27,7 @@
   const sobrenomeProfessor = document.getElementById('sobrenome_p');
   const emailProfessor = document.getElementById('email_p');
   const deptProfessor = document.getElementById('dept_p');
-  const turmasProfessor = document.getElementById('turmas_p');
+  const titulacaoProfessor = document.getElementById('titulacao_p');
   const materiasProfessor = document.getElementById('materias_p');
   const cpfProfessor = document.getElementById('cpf_p');
 
@@ -67,27 +70,48 @@
     return null;
   })();
 
+  // migração leve para dados antigos (mapear turma -> curso em Aluno)
+  (function migrate(){
+    try{
+      const arr = getPeople();
+      let changed = false;
+      arr.forEach(p => {
+        if((p.tipo||'') === 'Aluno'){
+          if(p.turma && !p.curso){ p.curso = p.turma; delete p.turma; changed = true; }
+          if(!p.status){ p.status = ''; changed = true; }
+        }
+      });
+      if(changed) setPeople(arr);
+    } catch(e){ /* noop */ }
+  })();
+
   function render(){
     if(!tbody) return;
     const q = (filter && filter.value ? filter.value.toLowerCase() : '');
+    // novos filtros (opcionais no HTML)
+    const filtroCursoEl = document.getElementById('filterCurso');
+    const filtroStatusEl = document.getElementById('filterStatus');
+    const filtroCurso = filtroCursoEl ? (filtroCursoEl.value || '') : '';
+    const filtroStatus = filtroStatusEl ? (filtroStatusEl.value || '') : '';
     let arr = getPeople();
     if(pageRole) arr = arr.filter(p => (p.tipo||'').toLowerCase() === pageRole.toLowerCase());
     if(q) arr = arr.filter(p => (p.nome||'').toLowerCase().includes(q) || (p.sobrenome||'').toLowerCase().includes(q) || (p.email||'').toLowerCase().includes(q) || (p.ra||'').toLowerCase().includes(q));
+    // aplicar filtros especificos
+    if(filtroCurso) arr = arr.filter(p => (p.curso||'') === filtroCurso);
+    if(filtroStatus) arr = arr.filter(p => (p.status||'') === filtroStatus);
     tbody.innerHTML = '';
-    if(arr.length === 0){ tbody.innerHTML = '<tr><td colspan="5" class="muted small">Nenhum registro</td></tr>'; return; }
+    if(arr.length === 0){ tbody.innerHTML = '<tr><td colspan="6" class="muted small">Nenhum registro</td></tr>'; return; }
     arr.forEach((p)=>{
       const tr = document.createElement('tr');
       const id = p.createdAt || p.email;
       if(pageRole === 'Aluno'){
-        tr.innerHTML = `<td>${p.nome} ${p.sobrenome||''}</td><td>${p.ra||''}</td><td>${p.email||''}</td><td>${p.turma||''}</td>
+        tr.innerHTML = `<td>${p.nome} ${p.sobrenome||''}</td><td>${p.ra||''}</td><td>${p.email||''}</td><td>${p.curso||''}</td><td>${p.status||''}</td>
           <td><button data-id="${id}" class="btn ghost small editBtn">Editar</button><button data-id="${id}" class="btn ghost small removeBtn">Remover</button></td>`;
       } else if(pageRole === 'Professor'){
-        const turmas = Array.isArray(p.turmas) ? p.turmas.join(', ') : (p.turmas || '');
-        const materias = Array.isArray(p.materias) ? p.materias.join(', ') : (p.materias || '');
-        tr.innerHTML = `<td>${p.nome} ${p.sobrenome||''}</td><td>${p.email||''}</td><td>${turmas}</td><td>${materias}</td>
+        tr.innerHTML = `<td>${p.nome} ${p.sobrenome||''}</td><td>${p.email||''}</td><td>${p.dept||''}</td><td>${p.titulacao||''}</td><td>${p.materias_p||''}</td>
           <td><button data-id="${id}" class="btn ghost small editBtn">Editar</button><button data-id="${id}" class="btn ghost small removeBtn">Remover</button></td>`;
       } else {
-        tr.innerHTML = `<td>${p.nome} ${p.sobrenome||''}</td><td>${p.email||''}</td><td>${p.tipo||''}</td><td>${p.turma||p.dept||''}</td>
+        tr.innerHTML = `<td>${p.nome} ${p.sobrenome||''}</td><td>${p.email||''}</td><td>${p.tipo||''}</td><td>${p.curso||p.dept||''}</td>
           <td><button data-id="${id}" class="btn ghost small removeBtn">Remover</button></td>`;
       }
       tbody.appendChild(tr);
@@ -112,28 +136,40 @@
   function isEmail(v){ return !!(v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)); }
   function isCPFvalid(v){ const d = (v||'').replace(/\D/g,''); return d.length === 11; }
 
-  function clearErrors(prefix){ ['nome','email','turma','cpf'].forEach(k=>{ const el = document.getElementById('err_' + k + '_' + prefix); if(el) el.textContent = ''; }); }
+  function clearErrors(prefix){ ['nome','email','turma','cpf','curso','status','ra','dept','titulacao','materias'].forEach(k=>{ const el = document.getElementById('err_' + k + '_' + prefix); if(el) el.textContent = ''; }); }
 
   function showError(id, msg){ const el = document.getElementById(id); if(el) el.textContent = msg; }
 
-  function validateAluno(){ let ok = true; if(!nomeAluno || !nomeAluno.value.trim()){ showError('err_nome_a','Nome é obrigatório'); ok = false; } else showError('err_nome_a',''); if(!emailAluno || !isEmail(emailAluno.value.trim())){ showError('err_email_a','Email inválido'); ok = false; } else showError('err_email_a',''); if(!turmaAluno || !turmaAluno.value.trim()){ showError('err_turma_a','Turma é obrigatória'); ok = false; } else showError('err_turma_a',''); if(!cpfAluno || !isCPFvalid(cpfAluno.value)){ showError('err_cpf_a','CPF deve ter 11 dígitos'); ok = false; } else showError('err_cpf_a',''); return ok; }
-  
-  // require RA for students
-  function validateAluno(){ let ok = true; if(!nomeAluno || !nomeAluno.value.trim()){ showError('err_nome_a','Nome é obrigatório'); ok = false; } else showError('err_nome_a',''); if(!emailAluno || !isEmail(emailAluno.value.trim())){ showError('err_email_a','Email inválido'); ok = false; } else showError('err_email_a',''); if(!raAluno || !raAluno.value.trim()){ showError('err_ra_a','RA é obrigatório'); ok = false; } else showError('err_ra_a',''); if(!turmaAluno || !turmaAluno.value.trim()){ showError('err_turma_a','Turma é obrigatória'); ok = false; } else showError('err_turma_a',''); if(!cpfAluno || !isCPFvalid(cpfAluno.value)){ showError('err_cpf_a','CPF deve ter 11 dígitos'); ok = false; } else showError('err_cpf_a',''); return ok; }
+  // require RA + curso/status for students (novo modelo)
+  function validateAluno(){
+    let ok = true;
+    if(!nomeAluno || !nomeAluno.value.trim()){ showError('err_nome_a','Nome é obrigatório'); ok = false; } else showError('err_nome_a','');
+    if(!emailAluno || !isEmail(emailAluno.value.trim())){ showError('err_email_a','Email inválido'); ok = false; } else showError('err_email_a','');
+    if(!raAluno || !raAluno.value.trim()){ showError('err_ra_a','RA é obrigatório'); ok = false; } else showError('err_ra_a','');
+    const cursoVal = cursoAluno ? cursoAluno.value : '';
+    const statusVal = statusAluno ? statusAluno.value : '';
+    if(!cursoVal){ showError('err_curso_a','Curso é obrigatório'); ok = false; } else showError('err_curso_a','');
+    if(!statusVal){ showError('err_status_a','Status é obrigatório'); ok = false; } else showError('err_status_a','');
+    if(!cpfAluno || !isCPFvalid(cpfAluno.value)){ showError('err_cpf_a','CPF deve ter 11 dígitos'); ok = false; } else showError('err_cpf_a','');
+    return ok;
+  }
 
-  function validateProfessor(){ let ok = true; if(!nomeProfessor || !nomeProfessor.value.trim()){ showError('err_nome_p','Nome é obrigatório'); ok = false; } else showError('err_nome_p',''); if(!emailProfessor || !isEmail(emailProfessor.value.trim())){ showError('err_email_p','Email inválido'); ok = false; } else showError('err_email_p',''); if(cpfProfessor && cpfProfessor.value && !isCPFvalid(cpfProfessor.value)){ showError('err_cpf_p','CPF deve ter 11 dígitos'); ok = false; } else showError('err_cpf_p',''); return ok; }
+  function validateProfessor(){
+    let ok = true;
+    if(!nomeProfessor || !nomeProfessor.value.trim()){ showError('err_nome_p','Nome é obrigatório'); ok = false; } else showError('err_nome_p','');
+    if(!emailProfessor || !isEmail(emailProfessor.value.trim())){ showError('err_email_p','Email inválido'); ok = false; } else showError('err_email_p','');
+    const deptVal = deptProfessor ? deptProfessor.value : '';
+    const titVal = titulacaoProfessor ? titulacaoProfessor.value : '';
+    if(!deptVal){ showError('err_dept_p','Departamento é obrigatório'); ok = false; } else showError('err_dept_p','');
+    if(!titVal){ showError('err_titulacao_p','Titulação é obrigatória'); ok = false; } else showError('err_titulacao_p','');
+    // matérias são opcionais
+    if(materiasProfessor && materiasProfessor.value.length > 200) { showError('err_materias_p', 'Máximo de 200 caracteres'); ok = false; } else { showError('err_materias_p', ''); }
+    if(cpfProfessor && cpfProfessor.value && !isCPFvalid(cpfProfessor.value)){ showError('err_cpf_p','CPF deve ter 11 dígitos'); ok = false; } else showError('err_cpf_p','');
+    return ok;
+  }
 
   // Create person + user helper
   function persistPersonAndUser(pessoa){
-    // normalize professor arrays if present
-    if(pessoa.tipo === 'Professor'){
-      if(pessoa.turmas && typeof pessoa.turmas === 'string'){
-        pessoa.turmas = pessoa.turmas.split(',').map(s=>s.trim()).filter(Boolean);
-      }
-      if(pessoa.materias && typeof pessoa.materias === 'string'){
-        pessoa.materias = pessoa.materias.split(',').map(s=>s.trim()).filter(Boolean);
-      }
-    }
     const arr = getPeople(); arr.push(pessoa); setPeople(arr);
     try{
       const users = getUsers();
@@ -151,8 +187,64 @@
   }
 
   // Submissions
-  if(formAluno){ formAluno.addEventListener('submit', (e)=>{ e.preventDefault(); if(!validateAluno()) return; const pessoa = { nome: nomeAluno.value.trim(), sobrenome: sobrenomeAluno? sobrenomeAluno.value.trim() : '', ra: raAluno.value.trim(), email: emailAluno.value.trim(), tipo: 'Aluno', turma: turmaAluno.value.trim(), cpf: cpfAluno? cpfAluno.value.trim() : '', createdAt: Date.now() }; persistPersonAndUser(pessoa); formAluno.reset(); render(); }); }
-  if(formProfessor){ formProfessor.addEventListener('submit', (e)=>{ e.preventDefault(); if(!validateProfessor()) return; const pessoa = { nome: nomeProfessor.value.trim(), sobrenome: sobrenomeProfessor? sobrenomeProfessor.value.trim() : '', email: emailProfessor.value.trim(), tipo: 'Professor', dept: deptProfessor? deptProfessor.value.trim(): '', turmas: turmasProfessor? turmasProfessor.value.trim() : '', materias: materiasProfessor? materiasProfessor.value.trim() : '', cpf: cpfProfessor? cpfProfessor.value.trim() : '', createdAt: Date.now() }; persistPersonAndUser(pessoa); formProfessor.reset(); render(); }); }
+  // estado de edição
+  let editState = { role: null, id: null };
+  const alunoSubmitBtn = formAluno ? formAluno.querySelector('button[type="submit"]') : null;
+  const profSubmitBtn = formProfessor ? formProfessor.querySelector('button[type="submit"]') : null;
+
+  if(formAluno){ formAluno.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      if(!validateAluno()) return;
+      const payload = {
+        nome: nomeAluno.value.trim(),
+        sobrenome: sobrenomeAluno? sobrenomeAluno.value.trim() : '',
+        ra: raAluno ? raAluno.value.trim() : '',
+        email: emailAluno.value.trim(),
+        tipo: 'Aluno',
+        curso: cursoAluno ? cursoAluno.value : (''),
+        status: statusAluno ? statusAluno.value : (''),
+        cpf: cpfAluno? cpfAluno.value.trim() : ''
+      };
+      const arr = getPeople();
+      if(editState.role === 'Aluno' && editState.id){
+        const idx = arr.findIndex(item => String(item.createdAt) === String(editState.id) || item.email === editState.id);
+        if(idx !== -1){ arr[idx] = { ...arr[idx], ...payload }; setPeople(arr); }
+        editState = { role: null, id: null };
+        if(alunoSubmitBtn) alunoSubmitBtn.textContent = 'Salvar Aluno';
+      } else {
+        const pessoa = { ...payload, createdAt: Date.now() };
+        persistPersonAndUser(pessoa);
+      }
+      formAluno.reset();
+      render();
+    }); }
+
+  if(formProfessor){ formProfessor.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      if(!validateProfessor()) return;
+      const payload = {
+        nome: nomeProfessor.value.trim(),
+        sobrenome: sobrenomeProfessor? sobrenomeProfessor.value.trim() : '',
+        email: emailProfessor.value.trim(),
+        tipo: 'Professor',
+        dept: deptProfessor ? deptProfessor.value : '',
+        titulacao: titulacaoProfessor ? titulacaoProfessor.value : '',
+        materias_p: materiasProfessor ? materiasProfessor.value.trim() : '',
+        cpf: cpfProfessor? cpfProfessor.value.trim() : ''
+      };
+      const arr = getPeople();
+      if(editState.role === 'Professor' && editState.id){
+        const idx = arr.findIndex(item => String(item.createdAt) === String(editState.id) || item.email === editState.id);
+        if(idx !== -1){ arr[idx] = { ...arr[idx], ...payload }; setPeople(arr); }
+        editState = { role: null, id: null };
+        if(profSubmitBtn) profSubmitBtn.textContent = 'Salvar Professor';
+      } else {
+        const pessoa = { ...payload, createdAt: Date.now() };
+        persistPersonAndUser(pessoa);
+      }
+      formProfessor.reset();
+      render();
+    }); }
 
   // Clears
   if(clearAluno) clearAluno.addEventListener('click', ()=>{ if(formAluno) formAluno.reset(); });
@@ -167,6 +259,10 @@
 
   // List handlers (remove/export/filter)
   if(filter) filter.addEventListener('input', render);
+  const filtroCursoEl = document.getElementById('filterCurso');
+  const filtroStatusEl = document.getElementById('filterStatus');
+  if(filtroCursoEl) filtroCursoEl.addEventListener('change', render);
+  if(filtroStatusEl) filtroStatusEl.addEventListener('change', render);
   if(exportBtn){ exportBtn.addEventListener('click', ()=>{ const data = JSON.stringify(getPeople(), null, 2); const blob = new Blob([data], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'edu_people.json'; a.click(); URL.revokeObjectURL(url); }); }
   if(tbody){ tbody.addEventListener('click', (e)=>{
       if(e.target.classList.contains('removeBtn')){
@@ -175,16 +271,42 @@
       if(e.target.classList.contains('editBtn')){
         const id = e.target.dataset.id; const arr = getPeople(); const idx = arr.findIndex(item => String(item.createdAt) === String(id) || item.email === id); if(idx === -1) return; const p = arr[idx];
         if(p.tipo === 'Aluno'){
-          const newRA = prompt('RA para ' + p.nome + ':', p.ra || '');
-          if(newRA !== null){ p.ra = newRA.trim(); setPeople(arr); render(); }
+          // exibir formulário e preencher
+          if(formAluno){
+            if(typeof tabAluno !== 'undefined' && tabAluno && tabProfessor){ tabAluno.click(); }
+            nomeAluno && (nomeAluno.value = p.nome || '');
+            sobrenomeAluno && (sobrenomeAluno.value = p.sobrenome || '');
+            raAluno && (raAluno.value = p.ra || '');
+            emailAluno && (emailAluno.value = p.email || '');
+            if(cursoAluno) cursoAluno.value = p.curso || '';
+            if(statusAluno) statusAluno.value = p.status || '';
+            cpfAluno && (cpfAluno.value = p.cpf || '');
+            editState = { role: 'Aluno', id };
+            if(alunoSubmitBtn) alunoSubmitBtn.textContent = 'Atualizar Aluno';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         } else if(p.tipo === 'Professor'){
-          const newTurmas = prompt('Turmas (separar por vírgula):', Array.isArray(p.turmas)? p.turmas.join(', ') : (p.turmas||''));
-          if(newTurmas !== null){ p.turmas = newTurmas.split(',').map(s=>s.trim()).filter(Boolean); }
-          const newMaterias = prompt('Matérias (separar por vírgula):', Array.isArray(p.materias)? p.materias.join(', ') : (p.materias||''));
-          if(newMaterias !== null){ p.materias = newMaterias.split(',').map(s=>s.trim()).filter(Boolean); }
-          setPeople(arr); render();
+          if(formProfessor){
+            if(typeof tabProfessor !== 'undefined' && tabAluno && tabProfessor){ tabProfessor.click(); }
+            nomeProfessor && (nomeProfessor.value = p.nome || '');
+            sobrenomeProfessor && (sobrenomeProfessor.value = p.sobrenome || '');
+            emailProfessor && (emailProfessor.value = p.email || '');
+            if(deptProfessor) deptProfessor.value = p.dept || '';
+            if(titulacaoProfessor) titulacaoProfessor.value = p.titulacao || '';
+            if(materiasProfessor) materiasProfessor.value = p.materias_p || '';
+            cpfProfessor && (cpfProfessor.value = p.cpf || '');
+            editState = { role: 'Professor', id };
+            if(profSubmitBtn) profSubmitBtn.textContent = 'Atualizar Professor';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         } else {
-          const newName = prompt('Nome:', p.nome || ''); if(newName !== null){ p.nome = newName.trim(); setPeople(arr); render(); }
+          // generico
+          if(formAluno){
+            nomeAluno && (nomeAluno.value = p.nome || '');
+            emailAluno && (emailAluno.value = p.email || '');
+            editState = { role: 'Aluno', id };
+            if(alunoSubmitBtn) alunoSubmitBtn.textContent = 'Atualizar Aluno';
+          }
         }
       }
     }); }
@@ -194,7 +316,26 @@
   // header/menu/theme/logout handled centrally by assets/js/header-controls.js
 
   const curr = JSON.parse(localStorage.getItem('edu_currentUser') || 'null');
-  if(!curr){ /* no-op: allow access */ } else { if(userGreeting) userGreeting.textContent = 'Olá, ' + (curr.name || curr.email); }
+  // hydrate role if missing and guard access for alunos
+  (function ensureRoleAndGuard(){
+    if(!curr) return;
+    if(!curr.role){
+      try{
+        const users = JSON.parse(localStorage.getItem('edu_users')||'[]');
+        const found = users.find(u=>u.email===curr.email);
+        let role = found?.role;
+        if(!role){
+          const people = JSON.parse(localStorage.getItem('edu_people')||'[]');
+          role = (people.find(p=>p.email===curr.email)?.tipo) || null;
+        }
+        if(role){ curr.role = role; localStorage.setItem('edu_currentUser', JSON.stringify(curr)); }
+      }catch(e){ /* noop */ }
+    }
+    if(String(curr.role||'').toLowerCase()==='aluno'){
+      window.location.href = 'aluno.html';
+    }
+  })();
+  if(curr && userGreeting) userGreeting.textContent = 'Olá, ' + (curr.name || curr.email);
 
   // initial render and notifs
   try{ render(); if(window.EduConnect?.notifications?.render) window.EduConnect.notifications.render(); } catch(e){ console.warn('Init render failed', e); }

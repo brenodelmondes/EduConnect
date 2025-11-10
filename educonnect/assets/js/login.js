@@ -4,8 +4,9 @@
   const emailIn = document.getElementById('email');
   const passIn = document.getElementById('password');
 
-  const defaultUser = { name: 'Admin', email: 'admin@edu.com', password: '1234' };
+  const defaultUser = { name: 'Admin', email: 'admin@edu.com', password: '1234', role: 'Admin' };
   const usersKey = 'edu_users';
+  const peopleKey = 'edu_people';
 
   function getUsers(){
     const raw = localStorage.getItem(usersKey);
@@ -16,6 +17,10 @@
       localStorage.setItem(usersKey, JSON.stringify(arr));
     }
     return arr;
+  }
+
+  function getPeople(){
+    try{ return JSON.parse(localStorage.getItem(peopleKey) || '[]'); }catch(e){ return []; }
   }
 
   function applyTheme(t){
@@ -37,8 +42,20 @@
     const users = getUsers();
     const found = users.find(u=>u.email===email && (u.password===password || !u.password));
     if(found){
-      localStorage.setItem('edu_currentUser', JSON.stringify({ name: found.name || found.email, email: found.email }));
-      window.location.href = 'dashboard.html';
+      // determine role from users or people registry
+      let role = found.role;
+      if(!role){
+        const people = getPeople();
+        const p = people.find(x=>x.email===found.email);
+        role = p?.tipo || 'Admin';
+      }
+      const current = { name: found.name || found.email, email: found.email, role };
+      localStorage.setItem('edu_currentUser', JSON.stringify(current));
+      if(String(role).toLowerCase()==='aluno'){
+        window.location.href = 'aluno.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
     } else {
       alert('Credenciais inválidas. Por favor, tente novamente.');
     }

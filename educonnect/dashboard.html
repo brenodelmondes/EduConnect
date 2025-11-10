@@ -48,24 +48,88 @@
     </header>
 
     <section class="container">
-      <div class="cards">
+      <div class="cards-grid">
         <div class="card stat">
           <h3 id="countStudents">0</h3>
-          <p>Alunos</p>
+          <p>Total de Alunos</p>
         </div>
         <div class="card stat">
           <h3 id="countTeachers">0</h3>
-          <p>Professores</p>
+          <p>Total de Professores</p>
         </div>
         <div class="card stat">
           <h3 id="countClasses">0</h3>
-          <p>Turmas</p>
+          <p>Turmas Ativas</p>
+        </div>
+      </div>
+      <div class="cards-grid secondary">
+        <div class="card stat stat-secondary">
+          <h3 id="newEnrollments">0</h3>
+          <p>Novas Matrículas (Semestre)</p>
+        </div>
+        <div class="card stat stat-secondary">
+          <h3 id="dropoutRate">0%</h3>
+          <p>Taxa de Evasão (Semestre)</p>
+        </div>
+        <div class="card stat stat-secondary">
+          <h3 id="paymentDefaultRate">0%</h3>
+          <p>Taxa de Inadimplência</p>
         </div>
       </div>
 
       <div class="card">
-        <h2>Desempenho</h2>
-        <canvas id="barChart" width="600" height="180"></canvas>
+        <div class="space-between" style="align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="margin:0;">Distribuição de Alunos</h2>
+          <div class="chart-toolbar">
+            <label for="chartPeriod">Período</label>
+            <select id="chartPeriod">
+              <option value="3">3m</option>
+              <option value="6" selected>6m</option>
+              <option value="12">12m</option>
+              <option value="all">Todos</option>
+            </select>
+            <label for="groupBy">Agrupar</label>
+            <select id="groupBy">
+              <option value="curso" selected>Curso</option>
+              <option value="status">Status</option>
+            </select>
+            <label class="checkbox" style="display:inline-flex; align-items:center; gap:6px;">
+              <input type="checkbox" id="onlyActive" checked>
+              Apenas ativos
+            </label>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="courseDistributionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="space-between" style="align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="margin:0;">Matrículas por mês</h2>
+          <div class="chart-toolbar">
+            <label for="trendPeriod">Período</label>
+            <select id="trendPeriod">
+              <option value="6" selected>6m</option>
+              <option value="12">12m</option>
+              <option value="24">24m</option>
+            </select>
+            <label class="checkbox" style="display:inline-flex; align-items:center; gap:6px;">
+              <input type="checkbox" id="trendOnlyActive">
+              Apenas ativos
+            </label>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="enrollTrendChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Professores por Departamento</h2>
+        <div class="chart-wrap">
+          <canvas id="deptTeachersChart"></canvas>
+        </div>
       </div>
 
       <div class="card">
@@ -77,9 +141,9 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="assets/js/notifications.js"></script>
   <script src="assets/js/header-controls.js"></script>
   <script src="assets/js/dashboard.js"></script>
-  <script src="assets/js/cadastro.js"></script>
 </body>
 </html>
