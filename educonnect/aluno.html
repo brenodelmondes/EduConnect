@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EduConnect - Minha Área (Aluno)</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="light">
+  <script>document.body.className = localStorage.getItem('edu_theme') || 'light';</script>
+  <aside class="sidebar" id="sidebar">
+    <h1 class="logo"><span class="edu">Edu</span><span class="connect">Connect</span></h1>
+    <nav>
+      <a href="aluno.html" class="active">Minha Área</a>
+      <a href="calendario.html">Calendário</a>
+      <a href="#" id="logoutLink">Sair</a>
+    </nav>
+    <div class="sidebar-footer"></div>
+  </aside>
+  <div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
+
+  <main class="main">
+    <header class="header">
+      <button id="menuToggle" class="btn ghost">☰</button>
+      <div class="header-right">
+        <button id="themeBtnHeader" class="btn ghost small">☼ Tema</button>
+        <div class="header-notif">
+          <button id="notifBtn" class="btn ghost small" aria-haspopup="true" aria-expanded="false">🔔 <span id="notifCount" class="small muted">0</span></button>
+          <div id="notifDropdown" class="card hidden notif-dropdown" role="menu" aria-hidden="true">
+            <div class="space-between" style="align-items:center; margin-bottom:8px;">
+              <strong>Notificações</strong>
+              <div>
+                <button id="markAllReadBtn" class="btn ghost small">Marcar todas lidas</button>
+                <button id="clearAllNotifsBtn" class="btn ghost small">Limpar</button>
+              </div>
+            </div>
+            <div id="notifList" class="muted small">Sem notificações</div>
+            <div style="margin-top:8px; text-align:center;"><button id="showAllNotifs" class="btn ghost small">Mostrar todos</button></div>
+          </div>
+        </div>
+        <div id="userGreeting">Olá, Aluno</div>
+      </div>
+    </header>
+
+    <section class="container">
+      <div class="card">
+        <div class="space-between" style="align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 id="faltasTitle" style="margin:0;">Frequência — Risco de Faltas</h2>
+          <span class="muted small">Limite institucional: 25% de faltas</span>
+        </div>
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+          <div style="position:relative; width:240px; height:240px;">
+            <canvas id="donutFaltas" width="240" height="240"></canvas>
+            <div id="donutCenterText" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; pointer-events:none;">
+              <strong id="faltasPctLabel" style="font-size:24px;">0% faltas</strong>
+              <span class="muted small">Limite 25%</span>
+            </div>
+          </div>
+          <div style="min-width:260px; flex:1;">
+            <p id="faltasMsg" class="muted" style="margin:0;">Calculando seu risco…</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card stat"><h3 id="kpiMediaGeral">0.0</h3><p>Média Geral</p></div>
+        <div class="card stat"><h3 id="kpiMaterias">0</h3><p>Matérias Cursando</p></div>
+      </div>
+
+      <div class="card">
+        <div class="space-between" style="align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="margin:0;">Notas por Matéria</h2>
+          <div class="chart-toolbar">
+            <label class="checkbox" style="display:inline-flex; align-items:center; gap:6px;">
+              <input type="checkbox" id="showTrend" checked>
+              Mostrar mini‑gráficos
+            </label>
+          </div>
+        </div>
+        <table id="materiasTable">
+          <thead>
+            <tr>
+              <th>Matéria</th>
+              <th>AC1</th>
+              <th>AC2</th>
+              <th>AC3</th>
+              <th>Média</th>
+              <th>Frequência</th>
+              <th>Evolução</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Calendário</h2>
+        <p class="muted small">Use o calendário completo no menu lateral. Em breve, um widget simplificado aparecerá aqui.</p>
+        <a class="btn" href="calendario.html">Abrir Calendário</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/header-controls.js"></script>
+  <script src="assets/js/aluno.js"></script>
+</body>
+</html>

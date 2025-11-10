@@ -65,9 +65,34 @@
               <input id="sobrenome_a">
             </div>
             <div class="col">
-              <label>Turma</label>
-              <input id="turma_a" placeholder="Ex: 3A" required>
-              <div class="error" id="err_turma_a"></div>
+              <label>RA</label>
+              <input id="ra_a" placeholder="Registro Acadêmico" required>
+              <div class="error" id="err_ra_a"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label>Curso</label>
+              <select id="curso_a" required>
+                <option value="">Selecione...</option>
+                <option value="Ciência da Computação">Ciência da Computação</option>
+                <option value="Engenharia de Software">Engenharia de Software</option>
+                <option value="Sistemas de Informação">Sistemas de Informação</option>
+                <option value="Administração">Administração</option>
+                <option value="Direito">Direito</option>
+              </select>
+              <div class="error" id="err_curso_a"></div>
+            </div>
+            <div class="col">
+              <label>Status</label>
+              <select id="status_a" required>
+                <option value="">Selecione...</option>
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
+                <option value="Trancado">Trancado</option>
+                <option value="Formado">Formado</option>
+              </select>
+              <div class="error" id="err_status_a"></div>
             </div>
           </div>
           <div class="row">
@@ -102,8 +127,30 @@
               <input id="sobrenome_p">
             </div>
             <div class="col">
-              <label>Área / Departamento</label>
-              <input id="dept_p" placeholder="Ex: Matemática">
+              <label>Departamento</label>
+              <select id="dept_p" required>
+                <option value="">Selecione...</option>
+                <option value="TI">TI</option>
+                <option value="Matemática">Matemática</option>
+                <option value="Física">Física</option>
+                <option value="Linguagens">Linguagens</option>
+                <option value="Humanas">Humanas</option>
+              </select>
+              <div class="error" id="err_dept_p"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label>Titulação</label>
+              <select id="titulacao_p" required>
+                <option value="">Selecione...</option>
+                <option value="Graduação">Graduação</option>
+                <option value="Especialista">Especialista</option>
+                <option value="Mestrado">Mestrado</option>
+                <option value="Doutorado">Doutorado</option>
+                <option value="Pós-doutorado">Pós-doutorado</option>
+              </select>
+              <div class="error" id="err_titulacao_p"></div>
             </div>
           </div>
           <div class="row">
@@ -122,8 +169,23 @@
 
       <div class="card">
         <h2>Listagem</h2>
-        <div class="row space-between">
-          <input id="filterInput" placeholder="Filtrar por nome ou tipo">
+        <div class="row space-between" style="gap:8px; align-items:center;">
+          <input id="filterInput" placeholder="Filtrar por nome, RA ou email">
+          <select id="filterCurso">
+            <option value="">Curso: Todos</option>
+            <option value="Ciência da Computação">Ciência da Computação</option>
+            <option value="Engenharia de Software">Engenharia de Software</option>
+            <option value="Sistemas de Informação">Sistemas de Informação</option>
+            <option value="Administração">Administração</option>
+            <option value="Direito">Direito</option>
+          </select>
+          <select id="filterStatus">
+            <option value="">Status: Todos</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+            <option value="Trancado">Trancado</option>
+            <option value="Formado">Formado</option>
+          </select>
           <button id="exportBtn" class="btn ghost small">Exportar (JSON)</button>
         </div>
         <table id="listTable">
@@ -132,7 +194,7 @@
               <th>Nome</th>
               <th>E-mail</th>
               <th>Tipo</th>
-              <th>Turma</th>
+              <th>Curso/Depto</th>
               <th>Ações</th>
             </tr>
           </thead>

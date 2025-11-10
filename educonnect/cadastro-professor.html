@@ -71,19 +71,45 @@
               <input id="sobrenome_p">
             </div>
             <div class="col">
-              <label>Turmas (separar por vírgula)</label>
-              <input id="turmas_p" placeholder="Ex: 3A,3B,2C">
+              <label>Departamento</label>
+              <select id="dept_p" required>
+                <option value="">Selecione...</option>
+                <option value="TI">Tecnologia da Informação</option>
+                <option value="Engenharia">Engenharia</option>
+                <option value="Negocios">Negócios</option>
+                <option value="Saude">Ciências da Saúde</option>
+                <option value="Humanas">Ciências Humanas</option>
+              </select>
+              <div class="error" id="err_dept_p"></div>
             </div>
           </div>
           <div class="row">
             <div class="col">
-              <label>Matérias (separar por vírgula)</label>
-              <input id="materias_p" placeholder="Ex: Matemática, Física">
+              <label>Titulação</label>
+              <select id="titulacao_p" required>
+                <option value="">Selecione...</option>
+                <option value="Graduação">Graduação</option>
+                <option value="Especialista">Especialista</option>
+                <option value="Mestrado">Mestrado</option>
+                <option value="Doutorado">Doutorado</option>
+                <option value="Pós-doutorado">Pós-doutorado</option>
+              </select>
+              <div class="error" id="err_titulacao_p"></div>
             </div>
+            <div class="col">
+              <label>Matérias lecionadas</label>
+              <input id="materias_p" placeholder="Ex: Cálculo I, Álgebra Linear">
+              <div class="error" id="err_materias_p"></div>
+            </div>
+          </div>
+          <div class="row">
             <div class="col">
               <label>CPF</label>
               <input id="cpf_p" placeholder="00000000000">
               <div class="error" id="err_cpf_p"></div>
+            </div>
+            <div class="col">
+              <!-- Espaço reservado para alinhamento -->
             </div>
           </div>
           <div class="row space-between">
@@ -96,7 +122,7 @@
       <div class="card">
         <h2>Listagem de Professores</h2>
         <div class="row space-between">
-          <input id="filterInput" placeholder="Filtrar por nome, turma ou matéria">
+          <input id="filterInput" placeholder="Filtrar por nome ou e-mail">
           <button id="exportBtn" class="btn ghost small">Exportar (JSON)</button>
         </div>
         <table id="listTable">
@@ -104,7 +130,8 @@
             <tr>
               <th>Nome</th>
               <th>E-mail</th>
-              <th>Turmas</th>
+              <th>Departamento</th>
+              <th>Titulação</th>
               <th>Matérias</th>
               <th>Ações</th>
             </tr>

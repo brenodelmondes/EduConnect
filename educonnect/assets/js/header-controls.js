@@ -12,6 +12,60 @@
     const markAllReadBtn = qs('#markAllReadBtn');
     const clearAllNotifsBtn = qs('#clearAllNotifsBtn');
     const logoutEl = qs('#logoutLink');
+    const greetingEl = qs('#userGreeting');
+    // role-based nav filtering
+    try{
+      const curr = JSON.parse(localStorage.getItem('edu_currentUser')||'null');
+      const role = String(curr?.role||'').toLowerCase();
+      const nav = qs('aside.sidebar nav');
+      if(nav && role){
+        if(role === 'aluno'){
+          // Hide admin-only links
+          Array.from(nav.querySelectorAll('a[href*="cadastro"], a[href="dashboard.html"]')).forEach(a=>{ a.style.display='none'; });
+          // Rename calendar link if labeled "Painel"
+          const calLink = nav.querySelector('a[href="calendario.html"]');
+          if(calLink && /painel/i.test(calLink.textContent)) calLink.textContent = 'Calendário';
+          // Ensure student has a link to "Minha Área"
+          let myArea = nav.querySelector('a[href="aluno.html"]');
+          if(!myArea){
+            myArea = document.createElement('a');
+            myArea.href = 'aluno.html';
+            myArea.textContent = 'Minha Área';
+            // Insert before first visible link
+            const firstVisible = Array.from(nav.querySelectorAll('a')).find(a=>a.style.display!== 'none' && a.href);
+            if(firstVisible) nav.insertBefore(myArea, firstVisible);
+            else nav.appendChild(myArea);
+          } else {
+            if(/dashboard/i.test(myArea.textContent) || !/minha área/i.test(myArea.textContent)) myArea.textContent = 'Minha Área';
+            myArea.style.display = '';
+          }
+        }
+        // Page title adjustments for students (remove "Painel —" prefix)
+        if(role === 'aluno'){
+          const h1 = document.querySelector('main h1');
+          if(h1 && /Calendário/i.test(h1.textContent)){
+            h1.textContent = 'Calendário';
+          }
+        }
+      }
+      // Greeting hydration (centralized)
+      if(greetingEl){
+        let displayName = curr?.name || curr?.nome || '';
+        if(!displayName && curr?.email){
+          try{
+            const people = JSON.parse(localStorage.getItem('edu_people')||'[]');
+            const found = people.find(p=>p.email === curr.email);
+            if(found) displayName = found.nome || found.name || '';
+          }catch(e){ /* noop */ }
+        }
+        if(displayName){
+          const first = displayName.split(' ')[0];
+          greetingEl.textContent = 'Olá, ' + first;
+        } else {
+          greetingEl.textContent = 'Olá, Usuário';
+        }
+      }
+    }catch(e){ /* noop */ }
 
     function setTheme(next){ document.body.classList.remove('light','dark'); document.body.classList.add(next); localStorage.setItem('edu_theme', next); window.dispatchEvent(new Event('storage')); }
 

@@ -13,6 +13,14 @@ const upcomingEventsList = document.getElementById("upcoming-events");
 
 let currentDate = new Date();
 
+// format a Date to local timezone ISO (YYYY-MM-DD) without UTC shift
+function localISO(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
 // support two possible localStorage keys (backward compatible)
 function readEvents(){
   try{
@@ -48,13 +56,15 @@ function renderCalendar() {
 
   const events = readEvents();
   const daysInMonth = lastDay.getDate();
+  const todayISO = localISO(new Date());
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const cell = document.createElement("div");
     cell.classList.add("calendar-cell");
     const dayNum = document.createElement('div'); dayNum.style.fontWeight='700'; dayNum.style.marginBottom='6px'; dayNum.textContent = day; cell.appendChild(dayNum);
 
-    const iso = date.toISOString().split('T')[0];
+    const iso = localISO(date);
+    if(iso === todayISO) cell.classList.add('is-today');
     const dayEvents = events.filter(e => e.date === iso);
     if (dayEvents.length) cell.classList.add("has-event");
     dayEvents.slice(0,3).forEach(ev=>{ const row = document.createElement('div'); row.innerHTML = `<span class="event-dot"></span><span class="event-title">${ev.title}</span>`; cell.appendChild(row); });
@@ -92,7 +102,7 @@ function openDay(iso){
 }
 
 // modal controls
-if(addEventBtn) addEventBtn.addEventListener('click', ()=>{ if(modal) modal.classList.add('show'); const today = new Date(); eventDateInput.value = today.toISOString().slice(0,10); eventTitleInput.value=''; eventDescInput.value=''; });
+if(addEventBtn) addEventBtn.addEventListener('click', ()=>{ if(modal) modal.classList.add('show'); const today = new Date(); eventDateInput.value = localISO(today); eventTitleInput.value=''; eventDescInput.value=''; });
 if(closeModalBtn) closeModalBtn.addEventListener('click', ()=>{ if(modal) modal.classList.remove('show'); });
 if(modal) modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('show'); });
 
