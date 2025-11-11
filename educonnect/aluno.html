@@ -73,7 +73,7 @@
           <div class="chart-toolbar">
             <label class="checkbox" style="display:inline-flex; align-items:center; gap:6px;">
               <input type="checkbox" id="showTrend" checked>
-              Mostrar mini‑gráficos
+              Mostrar gráficos
             </label>
           </div>
         </div>
@@ -94,10 +94,50 @@
       </div>
 
       <div class="card">
+        <h2>Próximas Entregas e Avaliações 📅</h2>
+        
+        <ul class="deliveries-list" id="upcoming-deliveries-list">
+          <li class="delivery-item-empty" id="deliveries-placeholder">
+            Carregando...
+          </li>
+        </ul>
+      </div>
+
+      <style>
+        .deliveries-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .delivery-item, .delivery-item-empty {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 12px 0;
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        body.dark .delivery-item, body.dark .delivery-item-empty {
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .delivery-item:last-child {
+          border-bottom: none;
+        }
+        .delivery-info {
+          flex: 1;
+        }
+        .delivery-info strong {
+          display: block;
+        }
+        .delivery-date {
+          text-align: right;
+        }
+      </style>
+
+      <!-- <div class="card">
         <h2>Calendário</h2>
         <p class="muted small">Use o calendário completo no menu lateral. Em breve, um widget simplificado aparecerá aqui.</p>
         <a class="btn" href="calendario.html">Abrir Calendário</a>
-      </div>
+      </div> -->
     </section>
   </main>
 

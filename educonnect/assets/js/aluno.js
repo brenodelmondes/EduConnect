@@ -1,6 +1,7 @@
 (function(){
   const entriesKey = 'edu_people';
   const studentDataKey = 'edu_studentData'; // { [email]: { materias: [{nome, ac1, ac2, ac3, media, frequencia}] } }
+  const eventsKey = 'edu_events'; // eventos criados por admin/professor
 
   function getPeople(){ return JSON.parse(localStorage.getItem(entriesKey) || '[]'); }
   function getStudentData(){ return JSON.parse(localStorage.getItem(studentDataKey) || '{}'); }
@@ -88,6 +89,65 @@
     return '→ estável';
   }
 
+  // ---- Eventos: leitura e renderização do card "Próximas Entregas" ----
+  function getEvents(){
+    try{
+      const raw = localStorage.getItem(eventsKey) || localStorage.getItem('educonnectEvents') || '[]';
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+
+  function formatDateDistance(eventDate){
+    const today = new Date();
+    const date = new Date(eventDate + 'T12:00:00'); // evita problemas de fuso/UTC
+    today.setHours(0,0,0,0);
+    const diffTime = date.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000*60*60*24));
+    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if(diffDays === 0) return { text: 'É Hoje!', days: 0, dateStr };
+    if(diffDays === 1) return { text: 'Amanhã', days: 1, dateStr };
+    if(diffDays > 1 && diffDays <= 14) return { text: `Daqui a ${diffDays} dias`, days: diffDays, dateStr };
+    if(diffDays > 14) return { text: `Em ${diffDays} dias`, days: diffDays, dateStr };
+    return { text: 'Atrasado', days: diffDays, dateStr };
+  }
+
+  function renderUpcomingEvents(studentData){
+    const listEl = document.getElementById('upcoming-deliveries-list');
+    const placeholderEl = document.getElementById('deliveries-placeholder');
+    if(!listEl) return;
+
+    const allEvents = getEvents();
+    const studentSubjects = (studentData.materias||[]).map(m=>m.nome);
+
+    const upcoming = allEvents
+      .map(evt => ({ ...evt, distance: formatDateDistance(evt.date) }))
+      .filter(evt => evt.distance.days >= 0 && (studentSubjects.includes(evt.course) || evt.course === studentData.curso))
+      .sort((a,b)=> a.distance.days - b.distance.days);
+
+    listEl.innerHTML = '';
+    if(upcoming.length === 0){
+      if(placeholderEl){ placeholderEl.textContent = 'Nenhuma entrega ou avaliação próxima. 🎉'; listEl.appendChild(placeholderEl); }
+      return;
+    }
+
+    upcoming.slice(0,3).forEach(evt => {
+      const li = document.createElement('li');
+      li.className = 'delivery-item';
+      li.innerHTML = `
+        <div class="delivery-info">
+          <strong>${evt.title}</strong>
+          <span class="muted small">${evt.course} • ${evt.type || ''}</span>
+        </div>
+        <div class="delivery-date">
+          <strong>${evt.distance.text}</strong>
+          <span class="muted small">${evt.distance.dateStr}</span>
+        </div>
+      `;
+      listEl.appendChild(li);
+    });
+  }
+
   function render(){
     const email = curr.email;
     const rec = ensureSampleData(email);
@@ -121,6 +181,9 @@
         const td = tr.lastElementChild; if(td){ td.innerHTML = `<span class="muted small">${trend(m.ac1,m.ac2,m.ac3)}</span>`; }
       }
     });
+
+    // Card de próximas entregas/avaliações
+    try{ renderUpcomingEvents(rec); } catch(e){ console.warn('Falha ao renderizar eventos', e); }
   }
 
   // init
@@ -186,8 +249,18 @@
     if(faltasMsg && pior){
       const faltasFeitas = Math.round((100 - pior.frequencia)/100 * TOTAL_AULAS_PADRAO);
       const limiteAulas = Math.floor(limitePct/100 * TOTAL_AULAS_PADRAO);
-      const restam = Math.max(0, limiteAulas - faltasFeitas);
-      const texto = restam>0 ? `Você pode faltar mais ${restam} aula${restam>1?'s':''} em ${pior.nome}.` : `Atenção: você excedeu ou está no limite de faltas em ${pior.nome}.`;
+      const restamRaw = limiteAulas - faltasFeitas;
+      const restam = Math.max(0, restamRaw);
+      const plural = restam === 1 ? 'falta' : 'faltas';
+      let texto = '';
+      const freq = pior.frequencia;
+      if(freq < 75 || faltasPct >= 25){
+        texto = 'Reprovado por Falta: Você excedeu o limite de faltas nesta matéria.';
+      } else if((freq < 80 && freq >= 75) || (faltasPct > 20 && faltasPct < 25)){
+        texto = `Perigo: Você está a ${restam} ${plural} do limite de reprovação.`;
+      } else {
+        texto = `Atenção: Você está a ${restam} ${plural} do limite de reprovação.`;
+      }
       faltasMsg.textContent = texto;
     }
     const faltasTitle = document.getElementById('faltasTitle');
