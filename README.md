@@ -1,6 +1,4 @@
-# EduConnect
-
-🎓 EduConnect — Sistema de Gestão Universitária
+# 🎓 EduConnect
 
 O EduConnect é uma plataforma moderna e responsiva desenvolvida para instituições de ensino superior, com o objetivo de facilitar a gestão acadêmica, melhorar a comunicação entre alunos e docentes, e centralizar informações acadêmicas em um único ambiente intuitivo.
 
