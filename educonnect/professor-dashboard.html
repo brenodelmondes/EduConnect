@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EduConnect - Dashboard do Professor</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="light">
+<script>document.body.className = localStorage.getItem('edu_theme') || 'light';</script>
+<aside class="sidebar" id="sidebar">
+  <h1 class="logo"><span class="edu">Edu</span><span class="connect">Connect</span></h1>
+  <nav id="profNav">
+    <a href="professor-dashboard.html" class="active">Dashboard</a>
+    <a href="professor-turmas.html">Minhas Turmas</a>
+    <a href="calendario.html">Calendário</a>
+    
+  </nav>
+  <div class="sidebar-footer"><a href="#" id="logoutLink">Sair</a></div>
+</aside>
+<div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
+<main class="main">
+  <header class="header">
+    <button id="menuToggle" class="btn ghost">☰</button>
+    <div class="header-right">
+  <button id="themeBtnHeader" class="btn ghost small">☼ Tema</button>
+      <div class="header-notif">
+        <button id="notifBtn" class="btn ghost small" aria-haspopup="true" aria-expanded="false">🔔 <span id="notifCount" class="small muted">0</span></button>
+        <div id="notifDropdown" class="card hidden notif-dropdown" role="menu" aria-hidden="true">
+          <div class="space-between" style="align-items:center; margin-bottom:8px;">
+            <strong>Notificações</strong>
+            <div>
+              <button id="markAllReadBtn" class="btn ghost small">Marcar todas lidas</button>
+              <button id="clearAllNotifsBtn" class="btn ghost small">Limpar</button>
+            </div>
+          </div>
+          <div id="notifList" class="muted small">Sem notificações</div>
+          <div style="margin-top:8px; text-align:center;"><button id="showAllNotifs" class="btn ghost small">Mostrar todos</button></div>
+        </div>
+      </div>
+      <div id="userGreeting">Olá, Professor</div>
+    </div>
+  </header>
+  <section class="container">
+    <div class="cards-grid">
+      <div class="card stat"><h3 id="kpiMinhasMaterias">0</h3><p>Minhas Matérias</p></div>
+      <div class="card stat"><h3 id="kpiTotalAlunos">0</h3><p>Total de Alunos</p></div>
+      <div class="card stat"><h3 id="kpiMediaAprov">0%</h3><p>Média de Aprovação (Semestre)</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Desempenho das Turmas</h2>
+      <canvas id="chartTurmas" height="220"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Distribuição por Faixa de Desempenho</h2>
+      <canvas id="chartFaixas" height="220"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Próximos Eventos</h2>
+      <ul class="deliveries-list" id="prof-upcoming-events">
+        <li class="delivery-item-empty" id="prof-events-placeholder">Carregando...</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Alunos em Risco</h2>
+      <ul class="risk-list" id="risk-students">
+        <li class="muted small" id="risk-placeholder">Carregando...</li>
+      </ul>
+    </div>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="assets/js/header-controls.js"></script>
+<script src="assets/js/notifications.js"></script>
+<script src="assets/js/professor-dashboard.js"></script>
+</body>
+</html>

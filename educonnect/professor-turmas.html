@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EduConnect - Minhas Turmas</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="light">
+<script>document.body.className = localStorage.getItem('edu_theme') || 'light';</script>
+<aside class="sidebar" id="sidebar">
+  <h1 class="logo"><span class="edu">Edu</span><span class="connect">Connect</span></h1>
+  <nav>
+    <a href="professor-dashboard.html">Dashboard</a>
+    <a href="professor-turmas.html" class="active">Minhas Turmas</a>
+    <a href="calendario.html">Calendário</a>
+    
+  </nav>
+  <div class="sidebar-footer"><a href="#" id="logoutLink">Sair</a></div>
+</aside>
+<div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
+<main class="main">
+  <header class="header">
+    <button id="menuToggle" class="btn ghost">☰</button>
+    <div class="header-right">
+  <button id="themeBtnHeader" class="btn ghost small">☼ Tema</button>
+      <div class="header-notif">
+        <button id="notifBtn" class="btn ghost small" aria-haspopup="true" aria-expanded="false">🔔 <span id="notifCount" class="small muted">0</span></button>
+        <div id="notifDropdown" class="card hidden notif-dropdown" role="menu" aria-hidden="true">
+          <div class="space-between" style="align-items:center; margin-bottom:8px;">
+            <strong>Notificações</strong>
+            <div>
+              <button id="markAllReadBtn" class="btn ghost small">Marcar todas lidas</button>
+              <button id="clearAllNotifsBtn" class="btn ghost small">Limpar</button>
+            </div>
+          </div>
+          <div id="notifList" class="muted small">Sem notificações</div>
+          <div style="margin-top:8px; text-align:center;"><button id="showAllNotifs" class="btn ghost small">Mostrar todos</button></div>
+        </div>
+      </div>
+      <div id="userGreeting">Olá, Professor</div>
+    </div>
+  </header>
+
+  <section class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">Minhas Turmas</h2>
+      <div id="lista-turmas" class="tabs-inline"></div>
+    </div>
+
+    <div class="card">
+      <div class="space-between" style="align-items:center; gap:12px; flex-wrap:wrap;">
+        <h2 id="titulo-diario" style="margin:0;">Diário de Notas</h2>
+        <div>
+          <button id="btnReloadTurma" class="btn ghost small">Recarregar</button>
+        </div>
+      </div>
+      <table id="tabela-diario">
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th>RA</th>
+            <th>AC1</th>
+            <th>AC2</th>
+            <th>AC3</th>
+            <th>Média</th>
+            <th>Frequência</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script src="assets/js/header-controls.js"></script>
+<script src="assets/js/notifications.js"></script>
+<script src="assets/js/professor-turmas.js"></script>
+</body>
+</html>

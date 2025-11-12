@@ -69,6 +69,34 @@ a {
   gap: 16px;
   margin-bottom: 16px;
 }
+.tabs-inline {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid rgba(15, 23, 42, 0.06);
+  margin-bottom: 12px;
+}
+.turma-tab {
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  color: var(--muted);
+}
+.turma-tab:hover { background: rgba(15,23,42,0.04); color: var(--text); }
+.turma-tab.active {
+  color: var(--text);
+  border-bottom: 3px solid var(--primary);
+  background: rgba(15,23,42,0.04);
+}
+body.dark .turma-tab:hover { background: rgba(255,255,255,0.06); }
+body.dark .tabs-inline { border-bottom-color: rgba(255,255,255,0.06); }
+body.dark .turma-tab.active { background: rgba(255,255,255,0.06); }
+
+.btn-success {
+  background: #10b981 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 6px 14px rgba(16,185,129,0.25) !important;
+}
 .cards-grid.secondary .card {
   background: color-mix(in srgb, var(--card) 95%, var(--muted));
   box-shadow: none;
@@ -215,8 +243,18 @@ input:focus {
   margin-bottom: 6px;
   color: var(--muted);
 }
+.sidebar-footer a {
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  color: var(--muted);
+}
 .sidebar nav a.active,
 .sidebar nav a:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text);
+}
+.sidebar-footer a:hover {
   background: rgba(0, 0, 0, 0.04);
   color: var(--text);
 }
