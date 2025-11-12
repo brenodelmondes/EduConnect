@@ -19,10 +19,10 @@
         <a href="dashboard.html">Dashboard</a>
         <a href="cadastro-aluno.html">Aluno</a>
         <a href="cadastro-professor.html">Professor</a>
-        <a href="calendario.html" class="active">Painel</a>
-        <a href="#" id="logoutLink">Sair</a>
+        <a href="calendario.html" class="active">Calendário</a>
+        
       </nav>
-      <div class="sidebar-footer"></div>
+      <div class="sidebar-footer"><a href="#" id="logoutLink">Sair</a></div>
     </aside>
     <div id="sidebarOverlay" class="sidebar-overlay" tabindex="-1"></div>
 
@@ -50,7 +50,7 @@
       </header>
 
       <section class="container">
-        <h1>Painel — Calendário</h1>
+  <h1>Calendário</h1>
 
         <div class="card">
           <div class="calendar-header" style="align-items:center;">
@@ -65,7 +65,7 @@
         <div class="events-panel card" style="margin-top:12px;">
           <h3>Eventos Próximos</h3>
           <ul id="upcoming-events"></ul>
-          <div style="margin-top:8px;"><button id="add-event-btn" class="btn">Adicionar evento</button></div>
+          <div style="margin-top:8px;"><button id="add-event-btn" class="btn">Novo Evento</button></div>
         </div>
       </section>
     </main>
@@ -78,9 +78,18 @@
       <input type="date" id="event-date" />
       <label>Título:</label>
       <input type="text" id="event-title" placeholder="Título do evento" />
+      <label>Tipo:</label>
+      <select id="event-type">
+        <option value="Avaliação">Avaliação</option>
+        <option value="Trabalho">Trabalho</option>
+        <option value="Seminário">Seminário</option>
+      </select>
+      <label>Turma / Disciplina:</label>
+      <select id="event-course"><option value="">Carregando...</option></select>
       <label>Descrição:</label>
       <textarea id="event-desc" placeholder="Descrição (opcional)"></textarea>
-      <div class="modal-actions">
+      <div class="muted small" id="event-role-hint" style="margin-top:4px;"></div>
+      <div class="modal-actions" style="margin-top:12px;">
         <button id="save-event" class="btn primary">Salvar</button>
         <button id="close-modal" class="btn ghost">Cancelar</button>
       </div>

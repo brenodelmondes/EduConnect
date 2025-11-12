@@ -19,34 +19,46 @@
       const role = String(curr?.role||'').toLowerCase();
       const nav = qs('aside.sidebar nav');
       if(nav && role){
+        // Hide/show links by role
         if(role === 'aluno'){
-          // Hide admin-only links
-          Array.from(nav.querySelectorAll('a[href*="cadastro"], a[href="dashboard.html"]')).forEach(a=>{ a.style.display='none'; });
-          // Rename calendar link if labeled "Painel"
-          const calLink = nav.querySelector('a[href="calendario.html"]');
-          if(calLink && /painel/i.test(calLink.textContent)) calLink.textContent = 'Calendário';
-          // Ensure student has a link to "Minha Área"
+          // hide admin/professor dashboards
+          Array.from(nav.querySelectorAll('a[href="dashboard.html"], a[href="professor-dashboard.html"], a[href*="cadastro"]'))
+            .forEach(a=>{ a.style.display='none'; });
+          // ensure Minha Área link exists (calendar page uses admin nav base)
           let myArea = nav.querySelector('a[href="aluno.html"]');
           if(!myArea){
             myArea = document.createElement('a');
-            myArea.href = 'aluno.html';
-            myArea.textContent = 'Minha Área';
-            // Insert before first visible link
-            const firstVisible = Array.from(nav.querySelectorAll('a')).find(a=>a.style.display!== 'none' && a.href);
-            if(firstVisible) nav.insertBefore(myArea, firstVisible);
-            else nav.appendChild(myArea);
+            myArea.href='aluno.html';
+            myArea.textContent='Minha Área';
+            nav.insertBefore(myArea, nav.firstChild);
           } else {
-            if(/dashboard/i.test(myArea.textContent) || !/minha área/i.test(myArea.textContent)) myArea.textContent = 'Minha Área';
-            myArea.style.display = '';
+            myArea.textContent = 'Minha Área';
+          }
+          myArea.style.display='';
+        }
+        if(role === 'professor' || role === 'coordenador'){
+          // In professor context keep only professor dashboard, turmas, calendario, logout
+          Array.from(nav.querySelectorAll('a')).forEach(a=>{
+            const href = a.getAttribute('href')||'';
+            if(['professor-dashboard.html','professor-turmas.html','calendario.html','#'].includes(href)){
+              a.style.display='';
+            } else {
+              a.style.display='none';
+            }
+          });
+          // If calendar page (original admin nav), inject professor links if missing
+          if(!nav.querySelector('a[href="professor-dashboard.html"]')){
+            const dash = document.createElement('a'); dash.href='professor-dashboard.html'; dash.textContent='Dashboard'; nav.insertBefore(dash, nav.firstChild);
+            const turmas = document.createElement('a'); turmas.href='professor-turmas.html'; turmas.textContent='Minhas Turmas'; nav.insertBefore(turmas, dash.nextSibling);
           }
         }
-        // Page title adjustments for students (remove "Painel —" prefix)
-        if(role === 'aluno'){
-          const h1 = document.querySelector('main h1');
-          if(h1 && /Calendário/i.test(h1.textContent)){
-            h1.textContent = 'Calendário';
-          }
+        if(role === 'admin'){
+          // Admin keeps original links; ensure Calendário label correct
+          Array.from(nav.querySelectorAll('a')).forEach(a=>{ a.style.display=''; });
         }
+        // Normalize calendar label
+        const calLink = nav.querySelector('a[href="calendario.html"]');
+        if(calLink) calLink.textContent = 'Calendário';
       }
       // Greeting hydration (centralized)
       if(greetingEl){

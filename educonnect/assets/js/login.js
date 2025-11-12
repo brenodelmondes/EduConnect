@@ -51,10 +51,13 @@
       }
       const current = { name: found.name || found.email, email: found.email, role };
       localStorage.setItem('edu_currentUser', JSON.stringify(current));
-      if(String(role).toLowerCase()==='aluno'){
+      const r = String(role).toLowerCase();
+      if(r==='aluno'){
         window.location.href = 'aluno.html';
+      } else if(r==='professor' || r==='coordenador'){
+        window.location.href = 'professor-dashboard.html';
       } else {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard.html'; // admin
       }
     } else {
       alert('Credenciais inválidas. Por favor, tente novamente.');

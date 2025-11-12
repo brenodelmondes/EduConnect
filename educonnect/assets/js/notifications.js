@@ -83,26 +83,84 @@
     setNotifs([]);
   }
 
-  function createNotification(title, body, targetRole){
-    const arr = getNotifs();
-    const n = { id: 'n_' + Date.now(), title: title, body: body, targetRole: targetRole || 'all', read: false, createdAt: Date.now() };
-    arr.push(n);
-    setNotifs(arr);
-  }
+    function createNotification(title, body, targetEmail, targetAudience){
+      const arr = getNotifs();
+      const n = {
+        id: 'n_' + Date.now(),
+        title: title,
+        body: body,
+        targetEmail: targetEmail || null,
+        targetAudience: targetAudience || (targetEmail? null : 'all'),
+        read: false,
+        createdAt: Date.now()
+      };
+      arr.push(n);
+      setNotifs(arr);
+    }
 
   // Expose functions to global scope
   global.EduConnect = global.EduConnect || {};
+  function filteredNotificationsForUser(user){
+    const all = getNotifs();
+    if(!user) return [];
+    const email = user.email;
+    const course = user.course || user.curso; // attempt multiple field names
+    return all.filter(n=>{
+      if(n.targetEmail) return n.targetEmail === email;
+      if(n.targetAudience){
+        if(n.targetAudience === 'all') return true;
+        if(course && n.targetAudience === course) return true;
+        return false;
+      }
+      // backward compat: legacy targetRole
+      if(n.targetRole){
+        const role = String(user.role||'').toLowerCase();
+        if(n.targetRole === 'all') return true;
+        if(role === n.targetRole) return true;
+      }
+      return false;
+    }).sort((a,b)=> b.createdAt - a.createdAt);
+  }
+
   global.EduConnect.notifications = {
     render: renderNotifications,
     markAllRead: markAllNotifsRead,
     clearAll: clearAllNotifs,
-    create: createNotification
+    create: createNotification,
+    listForUser: filteredNotificationsForUser
   };
 
   // Re-render on storage change
-  window.addEventListener('storage', renderNotifications);
-  // Initial render
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderNotifications);
-  else renderNotifications();
+  function safeRenderWrapper(){
+    const curr = JSON.parse(localStorage.getItem('edu_currentUser')||'null');
+    const list = filteredNotificationsForUser(curr);
+    const notifList = document.getElementById('notifList');
+    const notifCount = document.getElementById('notifCount');
+    if(!notifList || !notifCount) return;
+    if(list.length===0){
+      notifList.innerHTML = '<div class="muted small" style="padding:8px 12px;">Sem notificações</div>';
+      notifCount.textContent = '0';
+      return;
+    }
+    notifList.innerHTML='';
+    let unread=0;
+    list.forEach(n=>{
+      const item=document.createElement('div');
+      item.className='notif-item' + (n.read? '' : ' unread');
+      const top=document.createElement('div'); top.style.display='flex'; top.style.justifyContent='space-between'; top.style.alignItems='center';
+      const titleEl=document.createElement('strong'); titleEl.className='notif-title'; titleEl.textContent=n.title;
+      const removeBtn=document.createElement('button'); removeBtn.className='btn small ghost notif-remove'; removeBtn.textContent='✖'; removeBtn.title='Remover';
+      removeBtn.addEventListener('click',(ev)=>{ ev.stopPropagation(); const all=getNotifs(); const idx=all.findIndex(x=>x.id===n.id); if(idx!==-1){ all.splice(idx,1); setNotifs(all); safeRenderWrapper(); }});
+      top.appendChild(titleEl); top.appendChild(removeBtn);
+      const bodyEl=document.createElement('div'); bodyEl.className='small muted notif-body'; bodyEl.textContent=n.body;
+      item.appendChild(top); item.appendChild(bodyEl);
+      item.addEventListener('click', ()=>{ if(!n.read){ const all=getNotifs(); const idx=all.findIndex(x=>x.id===n.id); if(idx!==-1){ all[idx].read=true; setNotifs(all); safeRenderWrapper(); } }});
+      notifList.appendChild(item); if(!n.read) unread++;
+    });
+    notifCount.textContent=String(unread);
+  }
+
+  window.addEventListener('storage', safeRenderWrapper);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', safeRenderWrapper); else safeRenderWrapper();
 
 })(window);
