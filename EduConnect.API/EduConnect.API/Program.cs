@@ -1,5 +1,5 @@
 using EduConnect.API.Services.UseCases.Professor;
-using EduConnect.API.Shared.Data;
+using EduConnect.API.Services.UseCases.Usuario;
 using EduConnect.API.Shared.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,12 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Adicionar a configuração do DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-// 2. Registrar Repositório e Serviço para Injeção de Dependência
+// 2. Registrar Repositório e Serviços
 builder.Services.AddScoped<ISuaRepository, SuaRepository>();
 builder.Services.AddScoped<IProfessorService, ProfessorService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -29,9 +29,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

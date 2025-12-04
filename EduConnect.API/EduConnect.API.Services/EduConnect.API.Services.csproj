@@ -15,8 +15,4 @@
     <ProjectReference Include="..\EduConnect.API.Shared\EduConnect.API.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UseCases\Usuario\" />
-  </ItemGroup>
-
 </Project>
