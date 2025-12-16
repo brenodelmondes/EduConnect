@@ -1,5 +1,4 @@
 using EduConnect.API.Shared.Entities;
-using EduConnect.API.Shared.Entities.Professor;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduConnect.API.Shared.Data
@@ -10,6 +9,7 @@ namespace EduConnect.API.Shared.Data
 
         public DbSet<Professor> Professores { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Perfil> Perfis { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

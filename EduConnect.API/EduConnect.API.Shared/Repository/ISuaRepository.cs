@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using EduConnect.API.Shared.Entities;
-using EduConnect.API.Shared.Entities.Professor;
 
 namespace EduConnect.API.Shared.Repository
 {

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using ProfessorEntity = EduConnect.API.Shared.Entities.Professor.Professor;
+using ProfessorEntity = EduConnect.API.Shared.Entities.Professor;
 
 namespace EduConnect.API.Controllers.Professor
 {

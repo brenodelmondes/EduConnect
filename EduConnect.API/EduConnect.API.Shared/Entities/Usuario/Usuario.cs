@@ -28,6 +28,10 @@ namespace EduConnect.API.Shared.Entities
         [Required]
         [StringLength(11)]
         public string Cpf { get; set; }
-        public int TipoUsuario { get; set; }
+
+        // FK para Perfil
+        [Required]
+        public int PerfilId { get; set; }
+        public Perfil Perfil { get; set; }
     }
 }

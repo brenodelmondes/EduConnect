@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using EduConnect.API.Shared.Entities;
-using EduConnect.API.Shared.Entities.Professor;
 using Microsoft.EntityFrameworkCore;
+using EduConnect.API.Shared.Entities;
 
 namespace EduConnect.API.Shared.Repository
 {
@@ -71,7 +70,7 @@ namespace EduConnect.API.Shared.Repository
 
         public async Task<IEnumerable<Usuario>> ObterTodosUsuariosAsync()
         {
-            return await _context.Usuarios.AsNoTracking().ToListAsync();
+            return await _context.Usuarios.Include(u => u.Perfil).AsNoTracking().ToListAsync();
         }
 
         public async Task<Usuario> AtualizarUsuarioAsync(Usuario usuario)

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EduConnect.API.Shared.Entities.Professor
+namespace EduConnect.API.Shared.Entities
 {
     public class Professor
     {

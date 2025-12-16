@@ -1,8 +1,8 @@
-﻿using EduConnect.API.Shared.Entities.Professor;
+﻿using EduConnect.API.Shared.Entities;
 using EduConnect.API.Shared.Repository;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using ProfessorEntity = EduConnect.API.Shared.Entities.Professor.Professor;
+using ProfessorEntity = EduConnect.API.Shared.Entities.Professor;
 
 namespace EduConnect.API.Services.UseCases.Professor
 {
