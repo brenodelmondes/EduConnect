@@ -20,17 +20,11 @@ public class AppDbContext : DbContext
             new Perfil { Id = 3, Nome = "Aluno" }
         );
 
-        modelBuilder.Entity<Usuario>().HasData(
-            new Usuario
-            {
-                Id = 1,
-                Nome = "Super Admin",
-                Sobrenome = "Sistema",
-                Email = "admin@educonnect.com",
-                Cpf = "12345678910",
-                Senha = "senha_hash_super_segura",
-                PerfilId = 1
-            }
-        );
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.ToTable("Usuarios");
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.Cpf).IsUnique();
+        });
     }
 }

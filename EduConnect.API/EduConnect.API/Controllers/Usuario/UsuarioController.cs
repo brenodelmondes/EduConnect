@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using EduConnect.API.Services.UseCases.Usuario;
-using EduConnect.API.Shared.Repository;
+using EduConnect.API.Services.UseCases.Usuario.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UsuarioEntity = EduConnect.API.Shared.Entities.Usuario;
 
 namespace EduConnect.API.Controllers
 {
     [ApiController]
     [Route("/[controller]")]
+    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly IUsuarioService _usuarioService;
@@ -19,7 +20,7 @@ namespace EduConnect.API.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<UsuarioEntity>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<UsuarioListagemDto>), 200)]
         public async Task<IActionResult> Listar()
         {
             var usuarios = await _usuarioService.ListarAsync();
@@ -27,7 +28,7 @@ namespace EduConnect.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [ProducesResponseType(typeof(UsuarioEntity), 200)]
+        [ProducesResponseType(typeof(UsuarioListagemDto), 200)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> ObterPorId(int id)
         {
@@ -40,26 +41,26 @@ namespace EduConnect.API.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(UsuarioEntity), 201)]
+        [Authorize(Roles = "Administrador")]
+        [ProducesResponseType(typeof(UsuarioListagemDto), 201)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> Criar([FromBody] UsuarioEntity usuario)
+        public async Task<IActionResult> Criar([FromBody] UsuarioCriacaoDto dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var novoUsuario = await _usuarioService.CriarAsync(usuario);
-
-            // Se sua entidade não tem Id, mude para return Ok(novoUsuario);
-            return CreatedAtAction(nameof(ObterPorId), new { id = GetId(novoUsuario) }, novoUsuario);
+            var novoUsuario = await _usuarioService.CriarAsync(dto);
+            return CreatedAtAction(nameof(ObterPorId), new { id = novoUsuario.Id }, novoUsuario);
         }
 
         [HttpPut("{id:int}")]
-        [ProducesResponseType(204)]
+        [Authorize(Roles = "Administrador")]
+        [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Atualizar(int id, [FromBody] UsuarioEntity usuario)
+        public async Task<IActionResult> Atualizar(int id, [FromBody] UsuarioAtualizacaoDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -72,11 +73,12 @@ namespace EduConnect.API.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            await _usuarioService.AtualizarAsync(id, usuario);
-            return NoContent();
+            var atualizado = await _usuarioService.AtualizarAsync(id, dto);
+            return Ok(atualizado);
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Administrador")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> Deletar(int id)
@@ -89,13 +91,6 @@ namespace EduConnect.API.Controllers
 
             await _usuarioService.DeletarAsync(id);
             return NoContent();
-        }
-
-        // Helper para recuperar Id se a entidade o possuir
-        private static int? GetId(UsuarioEntity usuario)
-        {
-            var prop = typeof(UsuarioEntity).GetProperty("Id");
-            return prop != null ? (int?)prop.GetValue(usuario) : null;
         }
     }
 }

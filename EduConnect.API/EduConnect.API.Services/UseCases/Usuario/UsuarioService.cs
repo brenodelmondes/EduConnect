@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using EduConnect.API.Services.UseCases.Usuario.Dtos;
 using EduConnect.API.Shared.Repository;
 using UsuarioEntity = EduConnect.API.Shared.Entities.Usuario;
 
@@ -9,35 +11,67 @@ namespace EduConnect.API.Services.UseCases.Usuario
     public class UsuarioService : IUsuarioService
     {
         private readonly ISuaRepository _suaRepository;
+        private readonly TokenService _tokenService;
 
-        public UsuarioService(ISuaRepository suaRepository)
+        public UsuarioService(ISuaRepository suaRepository, TokenService tokenService)
         {
             _suaRepository = suaRepository;
+            _tokenService = tokenService;
         }
 
-        public Task<UsuarioEntity> CriarAsync(UsuarioEntity usuario)
+        public async Task<UsuarioListagemDto> CriarAsync(UsuarioCriacaoDto dto)
         {
-            // Regras como hashing de senha podem ser aplicadas aqui.
-            return _suaRepository.CriarUsuarioAsync(usuario);
-        }
-
-        public Task<UsuarioEntity> ObterPorIdAsync(int id)
-        {
-            return _suaRepository.UsuarioPorIdAsync(id);
-        }
-
-        public Task<IEnumerable<UsuarioEntity>> ListarAsync()
-        {
-            return _suaRepository.ObterTodosUsuariosAsync();
-        }
-
-        public Task<UsuarioEntity> AtualizarAsync(int id, UsuarioEntity usuario)
-        {
-            if (id != usuario?.GetType().GetProperty("Id")?.GetValue(usuario) as int? && usuario is not null)
+            var usuario = new UsuarioEntity
             {
-                throw new ArgumentException("O ID do usuário na rota não corresponde ao ID no corpo da requisição.");
+                Nome = dto.Nome,
+                Sobrenome = dto.Sobrenome,
+                Email = dto.Email,
+                Cpf = dto.Cpf,
+                PerfilId = dto.PerfilId,
+                Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha)
+            };
+
+            var created = await _suaRepository.CriarUsuarioAsync(usuario);
+            var loaded = await _suaRepository.UsuarioPorIdComPerfilAsync(created.Id);
+            return MapToListagemDto(loaded ?? created);
+        }
+
+        public async Task<UsuarioListagemDto?> ObterPorIdAsync(int id)
+        {
+            var usuario = await _suaRepository.UsuarioPorIdComPerfilAsync(id);
+            if (usuario == null) return null;
+            return MapToListagemDto(usuario);
+        }
+
+        public async Task<IEnumerable<UsuarioListagemDto>> ListarAsync()
+        {
+            var usuarios = await _suaRepository.ObterTodosUsuariosAsync();
+            return usuarios.Select(u => MapToListagemDto(u));
+        }
+
+        public async Task<UsuarioListagemDto> AtualizarAsync(int id, UsuarioAtualizacaoDto dto)
+        {
+            var existente = await _suaRepository.UsuarioPorIdAsync(id);
+            if (existente == null)
+            {
+                throw new ArgumentException("Usuário não encontrado.");
             }
-            return _suaRepository.AtualizarUsuarioAsync(usuario);
+
+            existente.Nome = dto.Nome;
+            existente.Sobrenome = dto.Sobrenome;
+            existente.Email = dto.Email;
+            existente.Cpf = dto.Cpf;
+            existente.PerfilId = dto.PerfilId;
+
+            if (!string.IsNullOrWhiteSpace(dto.Senha))
+            {
+                existente.Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha);
+            }
+
+            await _suaRepository.AtualizarUsuarioAsync(existente);
+
+            var loaded = await _suaRepository.UsuarioPorIdComPerfilAsync(existente.Id);
+            return MapToListagemDto(loaded ?? existente);
         }
 
         public Task DeletarAsync(int id)
@@ -48,6 +82,63 @@ namespace EduConnect.API.Services.UseCases.Usuario
         public Task<int> ObterQuantidadeDeUsuariosAsync()
         {
             return _suaRepository.ObterQuantidadeDeUsuarioAsync();
+        }
+
+        public async Task<LoginResultDto?> LoginAsync(LoginDto dto)
+        {
+            var email = (dto.Email ?? string.Empty).Trim().ToLowerInvariant();
+
+            var usuario = await _suaRepository.UsuarioPorEmailAsync(email);
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(usuario.Senha) || !usuario.Senha.StartsWith("$2"))
+            {
+                return null;
+            }
+
+            bool ok;
+            try
+            {
+                ok = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                return null;
+            }
+
+            if (!ok)
+            {
+                return null;
+            }
+
+            var token = _tokenService.GenerateToken(usuario);
+
+            return new LoginResultDto
+            {
+                Token = token,
+                Id = usuario.Id,
+                Nome = usuario.Nome,
+                Email = usuario.Email,
+                PerfilId = usuario.PerfilId,
+                PerfilNome = usuario.Perfil?.Nome ?? string.Empty
+            };
+        }
+
+        private static UsuarioListagemDto MapToListagemDto(UsuarioEntity u)
+        {
+            return new UsuarioListagemDto
+            {
+                Id = u.Id,
+                Nome = u.Nome,
+                Sobrenome = u.Sobrenome,
+                Email = u.Email,
+                Cpf = u.Cpf,
+                PerfilId = u.PerfilId,
+                PerfilNome = u.Perfil?.Nome
+            };
         }
     }
 }

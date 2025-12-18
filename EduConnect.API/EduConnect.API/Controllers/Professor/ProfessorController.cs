@@ -1,4 +1,5 @@
 using EduConnect.API.Services.UseCases.Professor;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace EduConnect.API.Controllers.Professor
 {
     [ApiController]
     [Route("/[controller]")]
+    [Authorize]
     public class ProfessorController : ControllerBase
     {
         private readonly IProfessorService _professorService;
@@ -40,6 +42,7 @@ namespace EduConnect.API.Controllers.Professor
         }
 
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ProducesResponseType(typeof(ProfessorEntity), 201)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Criar([FromBody] ProfessorEntity professor)
@@ -54,6 +57,7 @@ namespace EduConnect.API.Controllers.Professor
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Administrador")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
@@ -75,6 +79,7 @@ namespace EduConnect.API.Controllers.Professor
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Administrador")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> Deletar(int id)

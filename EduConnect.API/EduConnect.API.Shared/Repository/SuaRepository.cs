@@ -68,6 +68,23 @@ namespace EduConnect.API.Shared.Repository
             return _context.Usuarios.FindAsync(id).AsTask();
         }
 
+        public Task<Usuario?> UsuarioPorIdComPerfilAsync(int id)
+        {
+            return _context.Usuarios
+                .Include(u => u.Perfil)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public Task<Usuario?> UsuarioPorEmailAsync(string email)
+        {
+            var normalized = (email ?? string.Empty).Trim().ToLower();
+            return _context.Usuarios
+                .Include(u => u.Perfil)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalized);
+        }
+
         public async Task<IEnumerable<Usuario>> ObterTodosUsuariosAsync()
         {
             return await _context.Usuarios.Include(u => u.Perfil).AsNoTracking().ToListAsync();

@@ -17,6 +17,8 @@ namespace EduConnect.API.Shared.Repository
         // Usuario
         Task<Usuario> CriarUsuarioAsync(Usuario usuario);
         Task<Usuario> UsuarioPorIdAsync(int id);
+        Task<Usuario?> UsuarioPorIdComPerfilAsync(int id);
+        Task<Usuario?> UsuarioPorEmailAsync(string email);
         Task<IEnumerable<Usuario>> ObterTodosUsuariosAsync();
         Task<Usuario> AtualizarUsuarioAsync(Usuario usuario);
         Task DeletarUsuarioAsync(int id);
