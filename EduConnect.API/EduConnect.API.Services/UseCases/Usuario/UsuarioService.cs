@@ -94,15 +94,28 @@ namespace EduConnect.API.Services.UseCases.Usuario
                 return null;
             }
 
-            if (string.IsNullOrWhiteSpace(usuario.Senha) || !usuario.Senha.StartsWith("$2"))
+            var senhaDigitada = (dto.Senha ?? string.Empty).Trim();
+            var senhaArmazenada = usuario.Senha ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(senhaArmazenada))
             {
                 return null;
             }
 
+            var looksLikeBcrypt = senhaArmazenada.StartsWith("$2a$")
+                || senhaArmazenada.StartsWith("$2b$")
+                || senhaArmazenada.StartsWith("$2y$")
+                || senhaArmazenada.StartsWith("$2$");
+
             bool ok;
+            if (!looksLikeBcrypt)
+            {
+                return null;
+            }
+
             try
             {
-                ok = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
+                ok = BCrypt.Net.BCrypt.Verify(senhaDigitada, senhaArmazenada);
             }
             catch (BCrypt.Net.SaltParseException)
             {

@@ -26,7 +26,9 @@ public static class DataSeeder
         var adminPassword = configuration["Seed:DefaultPassword"] ?? "123456";
         var adminName = configuration["Seed:DefaultName"] ?? "Admin";
 
-        var existing = await db.Usuarios.FirstOrDefaultAsync(u => u.Email == adminEmail);
+        var normalizedAdminEmail = adminEmail.Trim().ToLowerInvariant();
+
+        var existing = await db.Usuarios.FirstOrDefaultAsync(u => u.Email.Trim().ToLower() == normalizedAdminEmail);
         if (existing != null)
         {
             // Se a senha atual não parece bcrypt, corrige na inicialização
@@ -42,7 +44,7 @@ public static class DataSeeder
         {
             Nome = adminName,
             Sobrenome = "Sistema",
-            Email = adminEmail,
+            Email = adminEmail.Trim(),
             Cpf = "12345678910",
             PerfilId = 1,
             Senha = BCrypt.Net.BCrypt.HashPassword(adminPassword)
