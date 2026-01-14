@@ -1,52 +1,53 @@
-﻿using EduConnect.API.Shared.Entities;
-using EduConnect.API.Shared.Repository;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EduConnect.API.Shared.Repository;
 using ProfessorEntity = EduConnect.API.Shared.Entities.Professor;
 
 namespace EduConnect.API.Services.UseCases.Professor
 {
     public class ProfessorService : IProfessorService
     {
-        private readonly ISuaRepository _suaRepository;
+        private readonly IProfessorRepository _professorRepository;
 
-        public ProfessorService(ISuaRepository suaRepository)
+        public ProfessorService(IProfessorRepository professorRepository)
         {
-            _suaRepository = suaRepository;
+            _professorRepository = professorRepository;
         }
 
         public Task<ProfessorEntity> CriarAsync(ProfessorEntity professor)
         {
-            return _suaRepository.CriarProfessorAsync(professor);
+            return _professorRepository.CriarAsync(professor);
         }
 
-        public Task<ProfessorEntity> ObterPorIdAsync(int id)
+        public async Task<ProfessorEntity?> ObterPorIdAsync(int id)
         {
-            return _suaRepository.ProfessorPorIdAsync(id);
+            return await _professorRepository.ObterPorIdAsync(id);
         }
 
         public Task<IEnumerable<ProfessorEntity>> ListarAsync()
         {
-            return _suaRepository.ObterTodosProfessoresAsync();
+            return _professorRepository.ObterTodosAsync();
         }
 
         public Task<ProfessorEntity> AtualizarAsync(int id, ProfessorEntity professor)
         {
             if (id != professor.Id)
             {
-                throw new System.ArgumentException("O ID do professor na rota não corresponde ao ID no corpo da requisição.");
+                throw new ArgumentException("O ID do professor na rota não corresponde ao ID no corpo da requisição.");
             }
-            return _suaRepository.AtualizarProfessorAsync(professor);
+
+            return _professorRepository.AtualizarAsync(professor);
         }
 
         public Task DeletarAsync(int id)
         {
-            return _suaRepository.DeletarAsync(id);
+            return _professorRepository.DeletarAsync(id);
         }
 
         public Task<int> ObterQuantidadeDeProfessoresAsync()
         {
-            return _suaRepository.ObterQuantidadeProfessoresAsync();
+            return _professorRepository.ObterQuantidadeAsync();
         }
     }
 }
