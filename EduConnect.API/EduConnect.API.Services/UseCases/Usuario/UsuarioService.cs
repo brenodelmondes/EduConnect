@@ -10,12 +10,12 @@ namespace EduConnect.API.Services.UseCases.Usuario
 {
     public class UsuarioService : IUsuarioService
     {
-        private readonly ISuaRepository _suaRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly TokenService _tokenService;
 
-        public UsuarioService(ISuaRepository suaRepository, TokenService tokenService)
+        public UsuarioService(IUsuarioRepository usuarioRepository, TokenService tokenService)
         {
-            _suaRepository = suaRepository;
+            _usuarioRepository = usuarioRepository;
             _tokenService = tokenService;
         }
 
@@ -31,27 +31,27 @@ namespace EduConnect.API.Services.UseCases.Usuario
                 Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha)
             };
 
-            var created = await _suaRepository.CriarUsuarioAsync(usuario);
-            var loaded = await _suaRepository.UsuarioPorIdComPerfilAsync(created.Id);
+            var created = await _usuarioRepository.CriarAsync(usuario);
+            var loaded = await _usuarioRepository.ObterPorIdComPerfilAsync(created.Id);
             return MapToListagemDto(loaded ?? created);
         }
 
         public async Task<UsuarioListagemDto?> ObterPorIdAsync(int id)
         {
-            var usuario = await _suaRepository.UsuarioPorIdComPerfilAsync(id);
+            var usuario = await _usuarioRepository.ObterPorIdComPerfilAsync(id);
             if (usuario == null) return null;
             return MapToListagemDto(usuario);
         }
 
         public async Task<IEnumerable<UsuarioListagemDto>> ListarAsync()
         {
-            var usuarios = await _suaRepository.ObterTodosUsuariosAsync();
-            return usuarios.Select(u => MapToListagemDto(u));
+            var usuarios = await _usuarioRepository.ObterTodosAsync();
+            return usuarios.Select(MapToListagemDto);
         }
 
         public async Task<UsuarioListagemDto> AtualizarAsync(int id, UsuarioAtualizacaoDto dto)
         {
-            var existente = await _suaRepository.UsuarioPorIdAsync(id);
+            var existente = await _usuarioRepository.ObterPorIdAsync(id);
             if (existente == null)
             {
                 throw new ArgumentException("Usuário não encontrado.");
@@ -68,27 +68,27 @@ namespace EduConnect.API.Services.UseCases.Usuario
                 existente.Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha);
             }
 
-            await _suaRepository.AtualizarUsuarioAsync(existente);
+            await _usuarioRepository.AtualizarAsync(existente);
 
-            var loaded = await _suaRepository.UsuarioPorIdComPerfilAsync(existente.Id);
+            var loaded = await _usuarioRepository.ObterPorIdComPerfilAsync(existente.Id);
             return MapToListagemDto(loaded ?? existente);
         }
 
         public Task DeletarAsync(int id)
         {
-            return _suaRepository.DeletarUsuarioAsync(id);
+            return _usuarioRepository.DeletarAsync(id);
         }
 
         public Task<int> ObterQuantidadeDeUsuariosAsync()
         {
-            return _suaRepository.ObterQuantidadeDeUsuarioAsync();
+            return _usuarioRepository.ObterQuantidadeAsync();
         }
 
         public async Task<LoginResultDto?> LoginAsync(LoginDto dto)
         {
             var email = (dto.Email ?? string.Empty).Trim().ToLowerInvariant();
 
-            var usuario = await _suaRepository.UsuarioPorEmailAsync(email);
+            var usuario = await _usuarioRepository.ObterPorEmailAsync(email);
             if (usuario == null)
             {
                 return null;

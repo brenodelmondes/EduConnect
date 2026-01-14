@@ -11,7 +11,7 @@ public static class DataSeeder
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Garante Perfis (caso banco n„o tenha recebido HasData por migrations)
+        // Garante Perfis (caso banco n√£o tenha recebido HasData por migrations)
         if (!await db.Perfis.AnyAsync())
         {
             db.Perfis.AddRange(
@@ -31,7 +31,7 @@ public static class DataSeeder
         var existing = await db.Usuarios.FirstOrDefaultAsync(u => u.Email.Trim().ToLower() == normalizedAdminEmail);
         if (existing != null)
         {
-            // Se a senha atual n„o parece bcrypt, corrige na inicializaÁ„o
+            // Se a senha atual n√£o parece bcrypt, corrige na inicializa√ß√£o
             if (string.IsNullOrWhiteSpace(existing.Senha) || !existing.Senha.StartsWith("$2"))
             {
                 existing.Senha = BCrypt.Net.BCrypt.HashPassword(adminPassword);

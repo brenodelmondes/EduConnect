@@ -1,6 +1,4 @@
-﻿// Controllers\AuthController.cs
-
-using EduConnect.API.Services.UseCases.Usuario;
+﻿using EduConnect.API.Services.UseCases.Usuario;
 using EduConnect.API.Services.UseCases.Usuario.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

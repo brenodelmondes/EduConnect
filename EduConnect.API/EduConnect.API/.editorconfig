@@ -1,0 +1,40 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.cs]
+dotnet_sort_system_directives_first = true
+file_header_template =
+
+# Preferir namespaces em bloco (semicolon) para manter estilo atual do projeto
+csharp_style_namespace_declarations = block_scoped
+
+# Usings
+csharp_using_directive_placement = outside_namespace:warning
+
+# Var preferences (padrão Microsoft mais permissivo)
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# Expression-bodied members (padrão Microsoft)
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
+
+# Null checks / pattern matching
+csharp_style_prefer_pattern_matching = true:suggestion
+
+# Spacing
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_before_open_square_brackets = false
+
+# New line options
+csharp_new_line_before_open_brace = all
+
+# Naming (não forçar por enquanto; manter compatibilidade com nomes em português)# Mantém nomes em português conforme base existente (sem forçar regras agressivas de nomenclatura)
