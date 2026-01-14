@@ -9,7 +9,7 @@ using ProfessorEntity = EduConnect.API.Shared.Entities.Professor;
 namespace EduConnect.API.Controllers.Professor
 {
     [ApiController]
-    [Route("/[controller]")]
+    [Route("[controller]")]
     [Authorize]
     public class ProfessorController : ControllerBase
     {
@@ -36,7 +36,7 @@ namespace EduConnect.API.Controllers.Professor
             var professor = await _professorService.ObterPorIdAsync(id);
             if (professor == null)
             {
-                return NotFound("Professor n„o encontrado.");
+                return NotFound("Professor n√£o encontrado.");
             }
             return Ok(professor);
         }
@@ -65,13 +65,7 @@ namespace EduConnect.API.Controllers.Professor
         {
             if (!ModelState.IsValid || id != professor.Id)
             {
-                return BadRequest("Dados inv·lidos.");
-            }
-
-            var professorExistente = await _professorService.ObterPorIdAsync(id);
-            if (professorExistente == null)
-            {
-                return NotFound("Professor n„o encontrado.");
+                return BadRequest("Dados inv√°lidos.");
             }
 
             await _professorService.AtualizarAsync(id, professor);
@@ -87,7 +81,7 @@ namespace EduConnect.API.Controllers.Professor
             var professorExistente = await _professorService.ObterPorIdAsync(id);
             if (professorExistente == null)
             {
-                return NotFound("Professor n„o encontrado.");
+                return NotFound("Professor n√£o encontrado.");
             }
 
             await _professorService.DeletarAsync(id);

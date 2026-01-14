@@ -1,4 +1,5 @@
 using System.Text;
+using EduConnect.API.Filters;
 using EduConnect.API.Services;
 using EduConnect.API.Services.UseCases.Professor;
 using EduConnect.API.Services.UseCases.Usuario;
@@ -13,7 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<ISuaRepository, SuaRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IProfessorRepository, ProfessorRepository>();
+
 builder.Services.AddScoped<IProfessorService, ProfessorService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<TokenService>();
@@ -39,7 +42,10 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ApiExceptionFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -88,7 +94,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Ocorreu um erro crítico ao inicializar o banco de dados.");
+        logger.LogError(ex, "Ocorreu um erro crï¿½tico ao inicializar o banco de dados.");
     }
 }
 

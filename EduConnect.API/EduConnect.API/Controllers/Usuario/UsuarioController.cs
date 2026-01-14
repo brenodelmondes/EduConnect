@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using EduConnect.API.Services.UseCases.Usuario;
 using EduConnect.API.Services.UseCases.Usuario.Dtos;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EduConnect.API.Controllers
 {
     [ApiController]
-    [Route("/[controller]")]
+    [Route("[controller]")]
     [Authorize]
     public class UsuariosController : ControllerBase
     {
@@ -65,12 +65,6 @@ namespace EduConnect.API.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest("Dados inválidos.");
-            }
-
-            var existente = await _usuarioService.ObterPorIdAsync(id);
-            if (existente == null)
-            {
-                return NotFound("Usuário não encontrado.");
             }
 
             var atualizado = await _usuarioService.AtualizarAsync(id, dto);
