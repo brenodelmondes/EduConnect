@@ -1,0 +1,27 @@
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using EduConnect.API.Shared.Entities;
+
+namespace EduConnect.API.Shared.Repository
+{
+    public interface ISuaRepository
+    {
+        // Professor
+        Task<Professor> CriarProfessorAsync(Professor professor);
+        Task<Professor> ProfessorPorIdAsync(int id);
+        Task<IEnumerable<Professor>> ObterTodosProfessoresAsync();
+        Task<Professor> AtualizarProfessorAsync(Professor professor);
+        Task DeletarAsync(int id);
+        Task<int> ObterQuantidadeProfessoresAsync();
+
+        // Usuario
+        Task<Usuario> CriarUsuarioAsync(Usuario usuario);
+        Task<Usuario> UsuarioPorIdAsync(int id);
+        Task<Usuario?> UsuarioPorIdComPerfilAsync(int id);
+        Task<Usuario?> UsuarioPorEmailAsync(string email);
+        Task<IEnumerable<Usuario>> ObterTodosUsuariosAsync();
+        Task<Usuario> AtualizarUsuarioAsync(Usuario usuario);
+        Task DeletarUsuarioAsync(int id);
+        Task<int> ObterQuantidadeDeUsuarioAsync();
+    }
+}
