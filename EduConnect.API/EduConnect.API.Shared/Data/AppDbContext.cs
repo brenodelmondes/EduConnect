@@ -46,7 +46,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.Curso)
-                .WithMany()
+                .WithMany(e => e.Alunos)
                 .HasForeignKey(e => e.CursoId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -81,7 +81,7 @@ public class AppDbContext : DbContext
             entity.ToTable("Materias");
 
             entity.HasOne(e => e.Curso)
-                .WithMany()
+                .WithMany(e => e.Materias)
                 .HasForeignKey(e => e.CursoId)
                 .OnDelete(DeleteBehavior.Restrict);
         });

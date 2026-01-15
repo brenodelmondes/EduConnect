@@ -13,7 +13,5 @@ namespace EduConnect.API.Shared.Entities
         [Required]
         [StringLength(100)]
         public string Nome { get; set; }
-
-        public ICollection<Curso> Cursos { get; set; } = new List<Curso>();
     }
 }
