@@ -1,11 +1,16 @@
 using System.Text;
+using AutoMapper;
 using EduConnect.API.Filters;
 using EduConnect.API.Services;
+using EduConnect.API.Services.UseCases.Curso;
+using EduConnect.API.Services.UseCases.Departamento;
 using EduConnect.API.Services.UseCases.Professor;
 using EduConnect.API.Services.UseCases.Usuario;
 using EduConnect.API.Shared.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -16,9 +21,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IProfessorRepository, ProfessorRepository>();
+builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
+builder.Services.AddScoped<ICursoRepository, CursoRepository>();
 
-builder.Services.AddScoped<IProfessorService, ProfessorService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IProfessorService, ProfessorService>();
+builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
+builder.Services.AddScoped<ICursoService, CursoService>();
+
+builder.Services.AddAutoMapper(typeof(DepartamentoProfile).Assembly);
+
 builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddAuthentication(options =>

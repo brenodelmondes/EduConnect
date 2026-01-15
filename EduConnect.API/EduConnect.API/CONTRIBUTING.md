@@ -14,6 +14,23 @@
   - Errado: `if (curso.Alunos.Any()) return BadRequest();`
   - Correto: `await _cursoService.DeletarAsync(id);`
 
+## UseCases (Vertical Slice)
+
+- **UseCase foi aplicado apenas nos domínios que possuem regras complexas e fluxo de negócio.**
+- **Entidades puramente administrativas utilizam apenas Service** para evitar overengineering.
+
+### Regra prática
+
+- **É só CRUD?**
+  - ✅ Não precisa UseCase.
+- **Tem regra, fluxo, cálculo, integração?**
+  - ✅ Usa UseCase.
+
+### Exemplos
+
+- ✅ Usar UseCase para: Matrícula, Evento, Boletim, Histórico, PDF, Média.
+- ❌ Não usar UseCase para: Departamento, Curso, Perfil.
+
 ## HTTP e erros
 
 - Tentativas inválidas por regra de negócio (ex.: exclusão de entidade com vínculos) devem resultar em **409 Conflict**.
