@@ -1,3 +1,4 @@
+using EduConnect.API.Shared.Data.SpResults;
 using EduConnect.API.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,9 @@ public class AppDbContext : DbContext
     public DbSet<Aluno> Alunos { get; set; }
     public DbSet<Matricula> Matriculas { get; set; }
     public DbSet<Evento> Eventos { get; set; }
+
+    public DbSet<BoletimLinhaSp> BoletimLinhasSp { get; set; }
+    public DbSet<DashboardResumoSp> DashboardResumosSp { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,7 +50,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.Curso)
-                .WithMany()
+                .WithMany(e => e.Alunos)
                 .HasForeignKey(e => e.CursoId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -81,7 +85,7 @@ public class AppDbContext : DbContext
             entity.ToTable("Materias");
 
             entity.HasOne(e => e.Curso)
-                .WithMany()
+                .WithMany(e => e.Materias)
                 .HasForeignKey(e => e.CursoId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -134,5 +138,8 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.TurmaId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<BoletimLinhaSp>().HasNoKey();
+        modelBuilder.Entity<DashboardResumoSp>().HasNoKey();
     }
 }

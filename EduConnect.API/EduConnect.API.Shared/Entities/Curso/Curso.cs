@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,5 +18,8 @@ namespace EduConnect.API.Shared.Entities
         public int DepartamentoId { get; set; }
 
         public Departamento Departamento { get; set; }
+
+        public ICollection<Materia> Materias { get; set; } = new List<Materia>();
+        public ICollection<Aluno> Alunos { get; set; } = new List<Aluno>();
     }
 }

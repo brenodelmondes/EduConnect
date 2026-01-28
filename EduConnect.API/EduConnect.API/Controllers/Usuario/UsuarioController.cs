@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EduConnect.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("/[controller]")]
     [Authorize]
     public class UsuariosController : ControllerBase
     {

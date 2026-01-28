@@ -11,14 +11,7 @@ namespace EduConnect.API.Filters
         {
             if (context.Exception is RegraDeNegocioException regra)
             {
-                context.Result = new ObjectResult(regra.Message) { StatusCode = 409 };
-                context.ExceptionHandled = true;
-                return;
-            }
-
-            if (context.Exception is KeyNotFoundException notFound)
-            {
-                context.Result = new NotFoundObjectResult(notFound.Message);
+                context.Result = new ObjectResult(regra.Message) { StatusCode = regra.StatusCode };
                 context.ExceptionHandled = true;
                 return;
             }
