@@ -29,7 +29,6 @@ namespace EduConnect.API.Shared.Repository
         public Task<Departamento?> ObterPorIdComCursosAsync(int id)
         {
             return _context.Departamentos
-                .Include(d => d.Cursos)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.Id == id);
         }

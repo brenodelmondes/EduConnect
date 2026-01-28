@@ -8,9 +8,7 @@ namespace EduConnect.API.Services.UseCases.Departamento
     {
         public DepartamentoProfile()
         {
-            CreateMap<DepartamentoEntity, DepartamentoListagemDto>()
-                .ForMember(dest => dest.QuantidadeDeCursos,
-                    opt => opt.MapFrom(src => src.Cursos.Count));
+            CreateMap<DepartamentoEntity, DepartamentoListagemDto>();
 
             CreateMap<DepartamentoCriacaoDto, DepartamentoEntity>();
             CreateMap<DepartamentoAtualizacaoDto, DepartamentoEntity>();

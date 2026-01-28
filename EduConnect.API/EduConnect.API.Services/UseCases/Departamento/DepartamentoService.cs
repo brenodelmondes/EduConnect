@@ -65,15 +65,10 @@ namespace EduConnect.API.Services.UseCases.Departamento
 
         public async Task DeletarAsync(int id)
         {
-            var departamento = await _departamentoRepository.ObterPorIdComCursosAsync(id);
+            var departamento = await _departamentoRepository.ObterPorIdAsync(id);
             if (departamento == null)
             {
                 throw RegraDeNegocioException.NaoEncontrado("Departamento não encontrado.");
-            }
-
-            if (departamento.Cursos?.Any() == true)
-            {
-                throw RegraDeNegocioException.Conflito("Não é possível excluir o departamento pois há cursos vinculados.");
             }
 
             await _departamentoRepository.DeletarAsync(id);

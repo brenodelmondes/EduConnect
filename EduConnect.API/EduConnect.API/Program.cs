@@ -2,9 +2,15 @@ using System.Text;
 using AutoMapper;
 using EduConnect.API.Filters;
 using EduConnect.API.Services;
+using EduConnect.API.Services.UseCases.Aluno;
+using EduConnect.API.Services.UseCases.Boletim;
 using EduConnect.API.Services.UseCases.Curso;
 using EduConnect.API.Services.UseCases.Departamento;
+using EduConnect.API.Services.UseCases.Evento;
+using EduConnect.API.Services.UseCases.Materia;
+using EduConnect.API.Services.UseCases.Matricula;
 using EduConnect.API.Services.UseCases.Professor;
+using EduConnect.API.Services.UseCases.Turma;
 using EduConnect.API.Services.UseCases.Usuario;
 using EduConnect.API.Shared.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,11 +29,27 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IProfessorRepository, ProfessorRepository>();
 builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
 builder.Services.AddScoped<ICursoRepository, CursoRepository>();
+builder.Services.AddScoped<IAlunoRepository, AlunoRepository>();
+builder.Services.AddScoped<IMateriaRepository, MateriaRepository>();
+builder.Services.AddScoped<ITurmaRepository, TurmaRepository>();
+builder.Services.AddScoped<IMatriculaRepository, MatriculaRepository>();
+builder.Services.AddScoped<IEventoRepository, EventoRepository>();
+builder.Services.AddScoped<IBoletimRepository, BoletimRepository>();
+builder.Services.AddScoped<IBoletimSpRepository, BoletimSpRepository>();
+builder.Services.AddScoped<IDashboardSpRepository, DashboardSpRepository>();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProfessorService, ProfessorService>();
 builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
 builder.Services.AddScoped<ICursoService, CursoService>();
+builder.Services.AddScoped<IAlunoService, AlunoService>();
+builder.Services.AddScoped<IMateriaService, MateriaService>();
+builder.Services.AddScoped<ITurmaService, TurmaService>();
+builder.Services.AddScoped<IMatriculaService, MatriculaService>();
+builder.Services.AddScoped<IEventoService, EventoService>();
+
+builder.Services.AddScoped<IBoletimPdfGenerator, QuestPdfBoletimPdfGenerator>();
+builder.Services.AddScoped<GerarBoletimUseCase>();
 
 builder.Services.AddAutoMapper(typeof(DepartamentoProfile).Assembly);
 

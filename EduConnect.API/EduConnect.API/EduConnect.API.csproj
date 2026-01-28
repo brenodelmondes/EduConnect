@@ -33,4 +33,8 @@
         <ProjectReference Include="..\EduConnect.API.Services\EduConnect.API.Services.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Controllers\Perfil\" />
+    </ItemGroup>
+
 </Project>
