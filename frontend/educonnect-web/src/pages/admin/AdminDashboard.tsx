@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAdminMetrics } from "@/mocks/metrics";
+import { getAdminMetrics } from "@/services/admin";
 import { StudentsDistributionChart } from "@/components/charts/StudentsDistribution";
 
 function Kpi({
@@ -43,7 +43,7 @@ export function AdminDashboard() {
         <Kpi
           title="Total de Alunos"
           value={String(m.studentsTotal)}
-          hint="Ativos no sistema"
+          hint="Cadastrados"
         />
         <Kpi
           title="Total de Professores"

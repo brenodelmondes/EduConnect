@@ -1,33 +1,27 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
-  LogOut,
   LayoutDashboard,
   Users,
   GraduationCap,
   CalendarDays,
 } from "lucide-react";
 import { ThemeToggle as ModeToggle } from "@/components/theme-toggle";
-import { useAuth } from "@/app/auth";
-import { useNavigate } from "react-router-dom";
+import { LogoutButton } from "@/components/logout-button";
 
 const navItemClass =
   "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground";
 
 export function AdminLayout() {
-  const { logout } = useAuth();
-  const nav = useNavigate();
-
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="flex">
         {/* SIDEBAR */}
-        <aside className="hidden w-64 border-r bg-background/60 backdrop-blur md:flex md:flex-col">
+        <aside className="hidden w-64 border-r bg-background/60 backdrop-blur md:sticky md:top-0 md:flex md:h-screen md:flex-col md:shrink-0">
           <div className="flex h-14 items-center px-4 border-b">
             <span className="font-semibold">EduConnect</span>
           </div>
 
-          <nav className="p-3 space-y-1 flex-1">
+          <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
             <NavLink
               to="/admin/dashboard"
               className={({ isActive }) =>
@@ -74,17 +68,7 @@ export function AdminLayout() {
           </nav>
 
           <div className="p-3 mt-auto">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2"
-              onClick={() => {
-                logout();
-                nav("/login");
-              }}
-            >
-              <LogOut className="h-4 w-4" />
-              Sair
-            </Button>
+            <LogoutButton />
           </div>
         </aside>
 

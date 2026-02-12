@@ -23,7 +23,7 @@ export function BarCourseDistribution({ data }: { data: Item[] }) {
         );
       })}
       <p className="pt-2 text-xs text-muted-foreground">
-        Dados simulados (MVP) — depois conectamos na API.
+        Modo demonstração — dados simulados. Integração com API na próxima etapa.
       </p>
     </div>
   );

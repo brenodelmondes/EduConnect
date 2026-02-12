@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { setTheme } = useTheme()
 
   // evita mismatch (quando theme vem do system)
   const [mounted, setMounted] = React.useState(false)

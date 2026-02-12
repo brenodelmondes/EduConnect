@@ -1,31 +1,116 @@
 // src/mocks/db.ts
-export type Student = { id: number; name: string; active: boolean; course: string; enrolledAt: string };
-export type Teacher = { id: number; name: string; department: string; active: boolean };
-export type ClassRoom = { id: number; course: string; active: boolean };
-export type Enrollment = { id: number; studentId: number; status: "PENDENTE" | "ATIVA" | "CANCELADA"; createdAt: string };
+export type Student = {
+  id: number;
+  name: string;
+  active: boolean;
+  course: string;
+  enrolledAt: string;
+};
 
-export const students: Student[] = [
-  { id: 1, name: "Ana Souza", active: true, course: "ADS", enrolledAt: "2026-01-10" },
-  { id: 2, name: "Bruno Lima", active: true, course: "ADS", enrolledAt: "2026-01-12" },
-  { id: 3, name: "Carla Mendes", active: false, course: "CC", enrolledAt: "2025-08-05" },
-  { id: 4, name: "Diego Alves", active: true, course: "CC", enrolledAt: "2026-01-18" },
-  { id: 5, name: "Evelyn Rocha", active: true, course: "SI", enrolledAt: "2025-09-20" },
+export type Teacher = {
+  id: number;
+  name: string;
+  department: string;
+  active: boolean;
+};
+
+export type ClassRoom = {
+  id: number;
+  course: string;
+  active: boolean;
+  teacherId?: number | null;
+};
+
+export type Enrollment = {
+  id: number;
+  studentId: number;
+  status: "PENDENTE" | "ATIVA" | "CANCELADA";
+  createdAt: string;
+};
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function isoDate(year: number, month1To12: number, day1To31: number) {
+  return `${year}-${pad2(month1To12)}-${pad2(day1To31)}`;
+}
+
+const COURSE_DISTRIBUTION: Array<{ name: string; count: number }> = [
+  { name: "ADS", count: 420 },
+  { name: "Eng. Software", count: 310 },
+  { name: "Ciência da Computação", count: 280 },
+  { name: "SI", count: 270 },
 ];
 
-export const teachers: Teacher[] = [
-  { id: 1, name: "Prof. Marcos", department: "Computação", active: true },
-  { id: 2, name: "Profa. Júlia", department: "Matemática", active: true },
-  { id: 3, name: "Prof. Renato", department: "Negócios", active: false },
-];
+const TOTAL_STUDENTS = COURSE_DISTRIBUTION.reduce((acc, c) => acc + c.count, 0);
+const NEW_ENROLLMENTS_SEMESTER = 210;
 
-export const classes: ClassRoom[] = [
-  { id: 1, course: "ADS", active: true },
-  { id: 2, course: "CC", active: true },
-  { id: 3, course: "SI", active: false },
-];
+let studentIdCounter = 1;
 
-export const enrollments: Enrollment[] = [
-  { id: 1, studentId: 1, status: "ATIVA", createdAt: "2026-01-10" },
-  { id: 2, studentId: 2, status: "PENDENTE", createdAt: "2026-01-12" },
-  { id: 3, studentId: 4, status: "ATIVA", createdAt: "2026-01-18" },
-];
+export const students: Student[] = COURSE_DISTRIBUTION.flatMap(({ name, count }) =>
+  Array.from({ length: count }, (_, idxInCourse) => {
+    const id = studentIdCounter++;
+    const globalIndex = id - 1;
+    const isNewThisSemester = globalIndex >= TOTAL_STUDENTS - NEW_ENROLLMENTS_SEMESTER;
+
+    // Mantém uma taxa de inatividade ~3.4% (1 a cada 29)
+    const active = id % 29 !== 0;
+
+    const enrolledAt = isNewThisSemester
+      ? isoDate(2026, 1, (idxInCourse % 28) + 1)
+      : isoDate(2025, 9, (idxInCourse % 28) + 1);
+
+    return {
+      id,
+      name: `Aluno ${id}`,
+      active,
+      course: name,
+      enrolledAt,
+    };
+  })
+);
+
+export const teachers: Teacher[] = Array.from({ length: 84 }, (_, i) => {
+  const id = i + 1;
+  const departments = ["Computação", "Matemática", "Negócios", "Design"];
+  return {
+    id,
+    name: `Professor ${id}`,
+    department: departments[i % departments.length],
+    active: id % 17 !== 0,
+  };
+});
+
+export const classes: ClassRoom[] = Array.from({ length: 32 }, (_, i) => {
+  const id = i + 1;
+  const course = COURSE_DISTRIBUTION[i % COURSE_DISTRIBUTION.length]?.name ?? "ADS";
+
+  // 2 turmas sem professor (para KPI de pendência)
+  const teacherId = id > 30 ? null : ((id % 84) + 1);
+
+  return {
+    id,
+    course,
+    active: true,
+    teacherId,
+  };
+});
+
+export const enrollments: Enrollment[] = Array.from(
+  { length: NEW_ENROLLMENTS_SEMESTER },
+  (_, i) => {
+    const id = i + 1;
+    const studentId = TOTAL_STUDENTS - NEW_ENROLLMENTS_SEMESTER + id;
+
+    // 12 matrículas pendentes para o card de pendências
+    const status: Enrollment["status"] = id <= 12 ? "PENDENTE" : "ATIVA";
+
+    return {
+      id,
+      studentId,
+      status,
+      createdAt: isoDate(2026, 1, (i % 28) + 1),
+    };
+  }
+);

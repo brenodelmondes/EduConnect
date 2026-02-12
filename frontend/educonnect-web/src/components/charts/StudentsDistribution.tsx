@@ -10,8 +10,14 @@ import {
 type Item = { name: string; value: number };
 
 export function StudentsDistributionChart({ data }: { data: Item[] }) {
-  // cores fixas só para demo (depois dá para amarrar no tema)
-  const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#ef4444"];
+  // cores do tema (chart-1..5)
+  const COLORS = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+  ];
 
   return (
     <div className="h-64 w-full">
@@ -32,9 +38,11 @@ export function StudentsDistributionChart({ data }: { data: Item[] }) {
           </Pie>
 
           <Tooltip
-            formatter={(value: any, _name: any, ctx: any) => {
-              const course = ctx?.payload?.name ?? "Curso";
-              return [`${value} alunos`, course];
+            formatter={(value: unknown, _name: unknown, ctx: unknown) => {
+              const course = (ctx as { payload?: { name?: string } } | null)
+                ?.payload?.name;
+              const numericValue = typeof value === "number" ? value : Number(value);
+              return [`${numericValue} alunos`, course ?? "Curso"];
             }}
           />
 
