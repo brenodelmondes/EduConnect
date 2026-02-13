@@ -1,16 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { teachersRepository } from "@/services/teachers.repository";
-import { teachersService, type TeacherRecord } from "@/services/teachers";
+import { turmasRepository, type TurmaRow } from "@/services/turmas.repository";
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-export function useTeachers() {
+export function useTurmas() {
   const mounted = useRef(true);
-
-  const [data, setData] = useState<TeacherRecord[]>([]);
+  const [data, setData] = useState<TurmaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,14 +17,14 @@ export function useTeachers() {
     setError(null);
 
     try {
-      await delay(300);
-      const list = await teachersRepository.list();
+      await delay(250);
+      const rows = await turmasRepository.list();
       if (mounted.current) {
-        setData(list);
+        setData(rows);
       }
     } catch {
       if (mounted.current) {
-        setError("Nao foi possivel carregar professores.");
+        setError("Nao foi possivel carregar turmas.");
         setData([]);
       }
     } finally {
@@ -44,24 +42,11 @@ export function useTeachers() {
     };
   }, [load]);
 
-  const add = useCallback((input: Omit<TeacherRecord, "id">): TeacherRecord => {
-    const created = teachersService.create(input);
-    setData((prev) => [...prev, created].sort((a, b) => a.id - b.id));
-    return created;
-  }, []);
-
-  const reset = useCallback(async () => {
-    teachersService.resetToMock();
-    await load();
-  }, [load]);
-
   return {
     data,
-    setData,
     loading,
     error,
-    load,
-    add,
-    reset,
+    reload: load,
+    setData,
   };
 }

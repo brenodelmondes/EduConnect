@@ -1,15 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { useStudents } from "@/hooks/useStudents";
+import { type StudentRecord } from "@/services/students";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { DemoNotice } from "@/components/ui/demo-notice";
 import {
   Dialog,
   DialogContent,
@@ -18,22 +13,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-import { useStudents } from "@/hooks/useStudents";
-import { type StudentRecord } from "@/services/students";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { StatusPill } from "@/components/ui/status-pill";
 
 type StatusFilter = "TODOS" | "ATIVOS" | "INATIVOS";
 
 function downloadJson(filename: string, contents: string) {
   const blob = new Blob([contents], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
   URL.revokeObjectURL(url);
 }
-
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -46,7 +46,6 @@ export function AdminStudents() {
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const { data: rows, loading, add, reset } = useStudents();
-  const [refreshing, setRefreshing] = useState(false);
 
   const [draft, setDraft] = useState<{
     name: string;
@@ -55,30 +54,20 @@ export function AdminStudents() {
     active: boolean;
   }>({ name: "", email: "", course: "ADS", active: true });
 
-  useEffect(() => {
-    if (loading) return;
-    setRefreshing(true);
-    const t = window.setTimeout(() => setRefreshing(false), 350);
-    return () => window.clearTimeout(t);
-  }, [query, status, course, page, loading]);
-
   const courses = useMemo(() => {
-    const s = new Set(rows.map((x) => x.course));
-    return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    const values = new Set(rows.map((item) => item.course));
+    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [rows]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .filter((s) => {
-        if (status === "ATIVOS" && !s.active) return false;
-        if (status === "INATIVOS" && s.active) return false;
-        if (course !== "TODOS" && s.course !== course) return false;
+      .filter((item) => {
+        if (status === "ATIVOS" && !item.active) return false;
+        if (status === "INATIVOS" && item.active) return false;
+        if (course !== "TODOS" && item.course !== course) return false;
         if (!q) return true;
-        return (
-          s.name.toLowerCase().includes(q) ||
-          s.email.toLowerCase().includes(q)
-        );
+        return item.name.toLowerCase().includes(q) || item.email.toLowerCase().includes(q);
       })
       .sort((a, b) => a.id - b.id);
   }, [rows, query, status, course]);
@@ -96,18 +85,18 @@ export function AdminStudents() {
     setPage(1);
   }
 
-  function onChangeQuery(v: string) {
-    setQuery(v);
+  function onChangeQuery(value: string) {
+    setQuery(value);
     resetPagination();
   }
 
-  function onChangeStatus(v: StatusFilter) {
-    setStatus(v);
+  function onChangeStatus(value: StatusFilter) {
+    setStatus(value);
     resetPagination();
   }
 
-  function onChangeCourse(v: string) {
-    setCourse(v);
+  function onChangeCourse(value: string) {
+    setCourse(value);
     resetPagination();
   }
 
@@ -140,7 +129,7 @@ export function AdminStudents() {
         <div>
           <h1 className="text-2xl font-semibold">Alunos</h1>
           <p className="text-sm text-muted-foreground">
-            Gestão de alunos em modo demonstração (dados simulados).
+            Gestao de alunos para acompanhamento academico e operacional.
           </p>
         </div>
 
@@ -151,10 +140,7 @@ export function AdminStudents() {
           <Button
             variant="secondary"
             onClick={() =>
-              downloadJson(
-                "educonnect-alunos.json",
-                JSON.stringify(filtered, null, 2)
-              )
+              downloadJson("educonnect-alunos.json", JSON.stringify(filtered, null, 2))
             }
           >
             Exportar JSON
@@ -173,7 +159,7 @@ export function AdminStudents() {
             </div>
 
             <div className="text-xs text-muted-foreground md:ml-auto">
-              {loading ? "Carregando…" : refreshing ? "Atualizando…" : ""}
+              {loading ? "Carregando..." : ""}
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -196,31 +182,21 @@ export function AdminStudents() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onChangeStatus("TODOS")}>
-                    Todos
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onChangeStatus("ATIVOS")}>
-                    Ativos
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onChangeStatus("INATIVOS")}>
-                    Inativos
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangeStatus("TODOS")}>Todos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangeStatus("ATIVOS")}>Ativos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangeStatus("INATIVOS")}>Inativos</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    Curso: {course === "TODOS" ? "Todos" : course}
-                  </Button>
+                  <Button variant="outline">Curso: {course === "TODOS" ? "Todos" : course}</Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="max-h-72 overflow-auto">
-                  <DropdownMenuItem onClick={() => onChangeCourse("TODOS")}>
-                    Todos
-                  </DropdownMenuItem>
-                  {courses.map((c) => (
-                    <DropdownMenuItem key={c} onClick={() => onChangeCourse(c)}>
-                      {c}
+                  <DropdownMenuItem onClick={() => onChangeCourse("TODOS")}>Todos</DropdownMenuItem>
+                  {courses.map((item) => (
+                    <DropdownMenuItem key={item} onClick={() => onChangeCourse(item)}>
+                      {item}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -246,7 +222,7 @@ export function AdminStudents() {
                 {loading ? (
                   <tr>
                     <td className="px-3 py-10 text-center text-muted-foreground" colSpan={6}>
-                      Carregando alunos…
+                      Carregando alunos...
                     </td>
                   </tr>
                 ) : pageItems.length === 0 ? (
@@ -256,23 +232,18 @@ export function AdminStudents() {
                     </td>
                   </tr>
                 ) : (
-                  pageItems.map((s) => (
-                    <tr key={s.id} className="border-t">
-                      <td className="px-3 py-2 text-muted-foreground">{s.id}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{s.ra}</td>
-                      <td className="px-3 py-2 font-medium">{s.name}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{s.email}</td>
-                      <td className="px-3 py-2">{s.course}</td>
+                  pageItems.map((item) => (
+                    <tr key={item.id} className="border-t">
+                      <td className="px-3 py-2 text-muted-foreground">{item.id}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{item.ra}</td>
+                      <td className="px-3 py-2 font-medium">{item.name}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{item.email}</td>
+                      <td className="px-3 py-2">{item.course}</td>
                       <td className="px-3 py-2">
-                        <span
-                          className={
-                            s.active
-                              ? "rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300"
-                              : "rounded-full bg-zinc-500/10 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:text-zinc-300"
-                          }
-                        >
-                          {s.active ? "Ativo" : "Inativo"}
-                        </span>
+                        <StatusPill
+                          label={item.active ? "Ativo" : "Inativo"}
+                          tone={item.active ? "success" : "neutral"}
+                        />
                       </td>
                     </tr>
                   ))
@@ -282,27 +253,25 @@ export function AdminStudents() {
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
-              Modo demonstração — dados simulados. Integração com API na próxima etapa.
-            </p>
+            <DemoNotice className="flex-1" />
 
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={safePage <= 1}
               >
                 Anterior
               </Button>
               <div className="text-xs text-muted-foreground">
-                Página <span className="font-medium text-foreground">{safePage}</span> de {pageCount}
+                Pagina <span className="font-medium text-foreground">{safePage}</span> de {pageCount}
               </div>
               <Button
                 variant="outline"
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
                 disabled={safePage >= pageCount}
               >
-                Próxima
+                Proxima
               </Button>
             </div>
           </div>
@@ -331,7 +300,7 @@ export function AdminStudents() {
           <DialogHeader>
             <DialogTitle>Adicionar aluno (demo)</DialogTitle>
             <DialogDescription>
-              Cadastro simplificado para apresentação. Os dados ficam salvos neste navegador.
+              Cadastro simplificado para apresentacao. Os dados ficam salvos neste navegador.
             </DialogDescription>
           </DialogHeader>
 
@@ -341,7 +310,7 @@ export function AdminStudents() {
               <Input
                 id="name"
                 value={draft.name}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                onChange={(e) => setDraft((state) => ({ ...state, name: e.target.value }))}
                 placeholder="Ex.: Maria Silva"
               />
             </div>
@@ -351,7 +320,7 @@ export function AdminStudents() {
               <Input
                 id="email"
                 value={draft.email}
-                onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
+                onChange={(e) => setDraft((state) => ({ ...state, email: e.target.value }))}
                 placeholder="Ex.: maria.silva@educonnect.demo"
               />
             </div>
@@ -361,7 +330,7 @@ export function AdminStudents() {
               <Input
                 id="course"
                 value={draft.course}
-                onChange={(e) => setDraft((d) => ({ ...d, course: e.target.value }))}
+                onChange={(e) => setDraft((state) => ({ ...state, course: e.target.value }))}
                 placeholder="Ex.: ADS"
               />
             </div>
@@ -372,7 +341,7 @@ export function AdminStudents() {
                 type="checkbox"
                 className="h-4 w-4 accent-primary"
                 checked={draft.active}
-                onChange={(e) => setDraft((d) => ({ ...d, active: e.target.checked }))}
+                onChange={(e) => setDraft((state) => ({ ...state, active: e.target.checked }))}
               />
               <Label htmlFor="active">Ativo</Label>
             </div>

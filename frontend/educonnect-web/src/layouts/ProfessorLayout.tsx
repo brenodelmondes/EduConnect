@@ -1,17 +1,21 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+
+import { PortalTopbar } from "@/components/portal-topbar";
+import { StudentPortalProvider } from "@/app/student-portal";
 
 export function ProfessorLayout() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", minHeight: "100vh" }}>
-      <aside style={{ padding: 16, borderRight: "1px solid var(--border)" }}>
-        <h3 style={{ marginTop: 0 }}>Professor</h3>
-        <nav style={{ display: "grid", gap: 8 }}>
-          <Link to="/professor/dashboard">Dashboard</Link>
-        </nav>
-      </aside>
-      <main style={{ padding: 24 }}>
-        <Outlet />
-      </main>
-    </div>
+    <StudentPortalProvider>
+      <div className="min-h-screen bg-background">
+        <PortalTopbar
+          homeTo="/professor/dashboard"
+          preferencesTo={null}
+          links={[{ label: "Painel", to: "/professor/dashboard" }]}
+        />
+        <main className="mx-auto w-full max-w-6xl p-4 md:p-6">
+          <Outlet />
+        </main>
+      </div>
+    </StudentPortalProvider>
   );
 }

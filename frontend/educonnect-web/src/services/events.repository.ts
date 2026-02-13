@@ -1,28 +1,27 @@
 import { DEMO_MODE } from "@/config/env";
+import { type CalendarEvent, calendarService } from "@/services/calendar";
 import { api } from "@/services/api";
-import { calendarService, type CalendarEvent } from "@/services/calendar";
 
 type ApiEvento = {
   id?: number;
   titulo?: string;
   dataEvento?: string;
 
-  // fallback PascalCase
   Id?: number;
   Titulo?: string;
   DataEvento?: string;
 };
 
-function mapApiEvento(e: ApiEvento): CalendarEvent {
-  const id = e.id ?? e.Id;
-  const title = e.titulo ?? e.Titulo;
-  const when = e.dataEvento ?? e.DataEvento;
+function mapApiEvento(input: ApiEvento): CalendarEvent {
+  const id = input.id ?? input.Id;
+  const title = input.titulo ?? input.Titulo;
+  const dateValue = input.dataEvento ?? input.DataEvento;
 
-  if (!id || !title || !when) {
+  if (!id || !title || !dateValue) {
     throw new Error("API retornou evento em formato inesperado");
   }
 
-  const start = new Date(when);
+  const start = new Date(dateValue);
   const end = new Date(start.getTime() + 60 * 60 * 1000);
 
   return {
@@ -35,25 +34,24 @@ function mapApiEvento(e: ApiEvento): CalendarEvent {
 
 function mergeById(apiEvents: CalendarEvent[], localEvents: CalendarEvent[]) {
   const byId = new Map<string, CalendarEvent>();
-  for (const e of apiEvents) byId.set(e.id, e);
-  for (const e of localEvents) byId.set(e.id, e);
+  for (const item of apiEvents) byId.set(item.id, item);
+  for (const item of localEvents) byId.set(item.id, item);
   return Array.from(byId.values()).sort((a, b) => a.start.getTime() - b.start.getTime());
 }
 
 export const eventsRepository = {
   async list(): Promise<CalendarEvent[]> {
-    const local = calendarService.list();
-
-    if (DEMO_MODE) return local;
+    const localEvents = calendarService.list();
+    if (DEMO_MODE) return localEvents;
 
     try {
-      const res = await api.get<ApiEvento[]>("/Eventos");
-      const data = Array.isArray(res.data) ? res.data : [];
+      const response = await api.get<ApiEvento[]>("/Eventos");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) return localEvents;
       const apiEvents = data.map(mapApiEvento);
-      // Mantém eventos locais (criados na demo) visíveis na UI.
-      return mergeById(apiEvents, local);
+      return mergeById(apiEvents, localEvents);
     } catch {
-      return local;
+      return localEvents;
     }
   },
 };

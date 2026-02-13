@@ -1,14 +1,13 @@
-import { ProtectedRoute } from "@/app/protected-route";
-import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import { PublicLayout } from "@/layouts/PublicLayout";
+import { ProtectedRoute } from "@/app/protected-route";
 import { AdminLayout } from "@/layouts/AdminLayout";
-import { ProfessorLayout } from "@/layouts/ProfessorLayout";
 import { AlunoLayout } from "@/layouts/AlunoLayout";
-
-import { LoginPage } from "@/pages/public/LoginPage";
+import { ProfessorLayout } from "@/layouts/ProfessorLayout";
+import { PublicLayout } from "@/layouts/PublicLayout";
 import { InscricaoPage } from "@/pages/public/InscricaoPage";
+import { LoginPage } from "@/pages/public/LoginPage";
 
 const AdminDashboard = lazy(() =>
   import("@/pages/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard }))
@@ -22,17 +21,41 @@ const AdminTeachers = lazy(() =>
 const AdminCalendar = lazy(() =>
   import("@/pages/admin/AdminCalendar").then((m) => ({ default: m.AdminCalendar }))
 );
+const AdminTurmas = lazy(() =>
+  import("@/pages/admin/AdminTurmas").then((m) => ({ default: m.AdminTurmas }))
+);
+const AdminMatriculas = lazy(() =>
+  import("@/pages/admin/AdminMatriculas").then((m) => ({ default: m.AdminMatriculas }))
+);
+
 const ProfessorDashboard = lazy(() =>
   import("@/pages/professor/ProfessorDashboard").then((m) => ({ default: m.ProfessorDashboard }))
 );
+
 const AlunoDashboard = lazy(() =>
   import("@/pages/aluno/AlunoDashboard").then((m) => ({ default: m.AlunoDashboard }))
 );
+const AlunoHome = lazy(() =>
+  import("@/pages/aluno/AlunoHome").then((m) => ({ default: m.AlunoHome }))
+);
+const AlunoPanel = lazy(() =>
+  import("@/pages/aluno/AlunoPanel").then((m) => ({ default: m.AlunoPanel }))
+);
+const AlunoCourses = lazy(() =>
+  import("@/pages/aluno/AlunoCourses").then((m) => ({ default: m.AlunoCourses }))
+);
+const AlunoGrades = lazy(() =>
+  import("@/pages/aluno/AlunoGrades").then((m) => ({ default: m.AlunoGrades }))
+);
+const AlunoServices = lazy(() =>
+  import("@/pages/aluno/AlunoServices").then((m) => ({ default: m.AlunoServices }))
+);
+const AlunoPreferences = lazy(() =>
+  import("@/pages/aluno/AlunoPreferences").then((m) => ({ default: m.AlunoPreferences }))
+);
 
 function RouteLoader() {
-  return (
-    <div className="p-6 text-sm text-muted-foreground">Carregando…</div>
-  );
+  return <div className="p-6 text-sm text-muted-foreground">Carregando...</div>;
 }
 
 function withSuspense(element: React.ReactNode) {
@@ -61,6 +84,8 @@ export const router = createBrowserRouter([
           { path: "dashboard", element: withSuspense(<AdminDashboard />) },
           { path: "alunos", element: withSuspense(<AdminStudents />) },
           { path: "professores", element: withSuspense(<AdminTeachers />) },
+          { path: "turmas", element: withSuspense(<AdminTurmas />) },
+          { path: "matriculas", element: withSuspense(<AdminMatriculas />) },
           { path: "calendario", element: withSuspense(<AdminCalendar />) },
         ],
       },
@@ -84,7 +109,16 @@ export const router = createBrowserRouter([
       {
         path: "/aluno",
         element: <AlunoLayout />,
-        children: [{ path: "dashboard", element: withSuspense(<AlunoDashboard />) }],
+        children: [
+          { index: true, element: <Navigate to="inicio" replace /> },
+          { path: "inicio", element: withSuspense(<AlunoHome />) },
+          { path: "painel", element: withSuspense(<AlunoPanel />) },
+          { path: "meus-cursos", element: withSuspense(<AlunoCourses />) },
+          { path: "servicos-digitais", element: withSuspense(<AlunoServices />) },
+          { path: "notas", element: withSuspense(<AlunoGrades />) },
+          { path: "preferencias", element: withSuspense(<AlunoPreferences />) },
+          { path: "dashboard", element: withSuspense(<AlunoDashboard />) },
+        ],
       },
     ],
   },

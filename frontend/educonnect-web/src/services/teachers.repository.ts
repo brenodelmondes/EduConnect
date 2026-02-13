@@ -9,7 +9,6 @@ type ApiProfessor = {
   departamentoNome?: string;
   active?: boolean;
 
-  // fallback PascalCase
   Id?: number;
   UsuarioNome?: string;
   UsuarioEmail?: string;
@@ -17,15 +16,12 @@ type ApiProfessor = {
   Active?: boolean;
 };
 
-function mapApiProfessor(p: ApiProfessor): TeacherRecord {
-  const id = p.id ?? p.Id;
-  const name = p.usuarioNome ?? p.UsuarioNome;
-  const email = p.usuarioEmail ?? p.UsuarioEmail;
-  const department = p.departamentoNome ?? p.DepartamentoNome;
+function mapApiProfessor(input: ApiProfessor): TeacherRecord {
+  const id = input.id ?? input.Id;
+  const name = input.usuarioNome ?? input.UsuarioNome;
+  const email = input.usuarioEmail ?? input.UsuarioEmail;
+  const department = input.departamentoNome ?? input.DepartamentoNome;
 
-  // Observação: o endpoint atual no backend retorna a Entity Professor,
-  // que não traz nome/email/departamento por extenso. Se estiver incompleto,
-  // força fallback para o demo mode.
   if (!id || !name || !email || !department) {
     throw new Error("API retornou professor em formato inesperado");
   }
@@ -35,7 +31,7 @@ function mapApiProfessor(p: ApiProfessor): TeacherRecord {
     name,
     email,
     department,
-    active: p.active ?? p.Active ?? true,
+    active: input.active ?? input.Active ?? true,
   };
 }
 
@@ -44,8 +40,9 @@ export const teachersRepository = {
     if (DEMO_MODE) return teachersService.list();
 
     try {
-      const res = await api.get<ApiProfessor[]>("/Professor");
-      const data = Array.isArray(res.data) ? res.data : [];
+      const response = await api.get<ApiProfessor[]>("/Professor");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) return teachersService.list();
       return data.map(mapApiProfessor);
     } catch {
       return teachersService.list();

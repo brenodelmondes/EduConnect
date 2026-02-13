@@ -2,173 +2,177 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
-html,
-body {
-  height: 100%;
-}
-
-body {
-  @apply bg-background text-foreground;
-  margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Arial,
-    sans-serif;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-  opacity: 0.9;
-}
-a:hover {
-  opacity: 1;
-}
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 212 44% 98%;
+    --foreground: 218 37% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 218 37% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 218 37% 14%;
 
-    --primary: 221 83% 53%;              /* azul (Edu) */
+    --primary: 197 92% 42%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 205 43% 94%;
+    --secondary-foreground: 218 37% 16%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 30% 94%;
+    --muted-foreground: 215 17% 40%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 195 45% 92%;
+    --accent-foreground: 218 37% 16%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 80% 58%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 212 31% 87%;
+    --input: 212 31% 87%;
+    --ring: 191 96% 45%;
 
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 271 91% 65%;
-    --chart-5: 0 84% 60%;
+    --chart-1: 194 89% 42%;
+    --chart-2: 158 64% 38%;
+    --chart-3: 42 95% 48%;
+    --chart-4: 222 82% 62%;
+    --chart-5: 344 82% 58%;
 
-    --radius: 0.75rem;
+    --radius: 0.8rem;
   }
 
   .dark {
-    --background: 222 47% 7%;            /* fundo dark mais “premium” */
+    --background: 216 53% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 9%;
+    --card: 216 48% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 9%;
+    --popover: 216 48% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 221 83% 60%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 192 92% 50%;
+    --primary-foreground: 216 53% 8%;
 
-    --secondary: 217 33% 16%;
+    --secondary: 215 40% 16%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 16%;
-    --muted-foreground: 215 20% 70%;
+    --muted: 215 35% 17%;
+    --muted-foreground: 214 20% 72%;
 
-    --accent: 217 33% 16%;
+    --accent: 214 41% 20%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 63% 31%;
+    --destructive: 0 68% 42%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 221 83% 60%;
+    --border: 215 32% 22%;
+    --input: 215 32% 22%;
+    --ring: 193 93% 54%;
 
-    --chart-1: 221 83% 60%;
-    --chart-2: 142 71% 50%;
-    --chart-3: 38 92% 55%;
-    --chart-4: 271 91% 70%;
-    --chart-5: 0 84% 65%;
+    --chart-1: 194 93% 56%;
+    --chart-2: 160 63% 46%;
+    --chart-3: 42 95% 54%;
+    --chart-4: 224 78% 66%;
+    --chart-5: 345 83% 64%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    font-family: "Plus Jakarta Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Sora", "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-
-  /* react-big-calendar (MVP): ajustes mínimos para combinar com o tema */
   .rbc-calendar {
     @apply text-foreground;
   }
+
   .rbc-toolbar button {
     @apply rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground;
   }
+
   .rbc-toolbar button:hover {
     @apply bg-accent;
   }
+
   .rbc-toolbar button.rbc-active,
   .rbc-toolbar button.rbc-active:hover {
     @apply bg-primary text-primary-foreground;
   }
+
   .rbc-month-view,
   .rbc-time-view {
     @apply rounded-md border border-border;
   }
+
   .rbc-today {
     background-color: hsl(var(--accent));
   }
+
   .rbc-off-range-bg {
     background-color: hsl(var(--muted));
   }
+
   .rbc-event,
   .rbc-day-slot .rbc-background-event {
     background-color: hsl(var(--primary));
   }
+
   .rbc-event.rbc-selected {
     background-color: hsl(var(--primary));
   }
 
-  /* Clicabilidade/seleção de dias (month view) */
   .rbc-month-view .rbc-day-bg,
   .rbc-month-view .rbc-date-cell {
     cursor: pointer;
   }
+
   .rbc-month-view .rbc-day-bg {
-    transition:
-      background-color 150ms ease,
-      box-shadow 150ms ease;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
   }
+
   .rbc-month-view .rbc-day-bg:hover {
     background-color: hsl(var(--accent));
     box-shadow: inset 0 0 0 1px hsl(var(--ring));
   }
+
   .rbc-selected-cell {
     background-color: hsl(var(--accent));
     box-shadow: inset 0 0 0 2px hsl(var(--ring));
   }
+
   .rbc-event,
   .rbc-show-more {
     cursor: pointer;
   }
+
   .rbc-event:hover {
     filter: brightness(0.98);
   }

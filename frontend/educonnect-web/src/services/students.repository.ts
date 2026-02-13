@@ -6,14 +6,11 @@ type ApiAluno = {
   id?: number;
   usuarioNome?: string;
   usuarioEmail?: string;
-  ra?: string;
   cursoNome?: string;
 
-  // fallback PascalCase
   Id?: number;
   UsuarioNome?: string;
   UsuarioEmail?: string;
-  Ra?: string;
   CursoNome?: string;
 };
 
@@ -25,12 +22,11 @@ function todayIso() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function mapApiAluno(a: ApiAluno): StudentRecord & { ra?: string } {
-  const id = a.id ?? a.Id;
-  const name = a.usuarioNome ?? a.UsuarioNome;
-  const email = a.usuarioEmail ?? a.UsuarioEmail;
-  const course = a.cursoNome ?? a.CursoNome;
-  const ra = a.ra ?? a.Ra;
+function mapApiAluno(input: ApiAluno): StudentRecord {
+  const id = input.id ?? input.Id;
+  const name = input.usuarioNome ?? input.UsuarioNome;
+  const email = input.usuarioEmail ?? input.UsuarioEmail;
+  const course = input.cursoNome ?? input.CursoNome;
 
   if (!id || !name || !email || !course) {
     throw new Error("API retornou aluno em formato inesperado");
@@ -43,17 +39,17 @@ function mapApiAluno(a: ApiAluno): StudentRecord & { ra?: string } {
     course,
     active: true,
     enrolledAt: todayIso(),
-    ra,
   };
 }
 
 export const studentsRepository = {
-  async list(): Promise<Array<StudentRecord & { ra?: string }>> {
+  async list(): Promise<StudentRecord[]> {
     if (DEMO_MODE) return studentsService.list();
 
     try {
-      const res = await api.get<ApiAluno[]>("/Alunos");
-      const data = Array.isArray(res.data) ? res.data : [];
+      const response = await api.get<ApiAluno[]>("/Alunos");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) return studentsService.list();
       return data.map(mapApiAluno);
     } catch {
       return studentsService.list();

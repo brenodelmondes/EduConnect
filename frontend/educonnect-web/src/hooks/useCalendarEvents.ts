@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { calendarService, type CalendarEvent } from "@/services/calendar";
+import { type CalendarEvent, calendarService } from "@/services/calendar";
+import { eventsRepository } from "@/services/events.repository";
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -18,17 +19,20 @@ export function useCalendarEvents() {
     setError(null);
 
     try {
-      await delay(450);
-      const list = calendarService.list();
-      if (!mounted.current) return;
-      setData(list);
+      await delay(350);
+      const list = await eventsRepository.list();
+      if (mounted.current) {
+        setData(list);
+      }
     } catch {
-      if (!mounted.current) return;
-      setError("Não foi possível carregar eventos.");
-      setData([]);
+      if (mounted.current) {
+        setError("Nao foi possivel carregar eventos.");
+        setData([]);
+      }
     } finally {
-      if (!mounted.current) return;
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -51,7 +55,7 @@ export function useCalendarEvents() {
     if (!updated) return null;
     setData((prev) => {
       const next = prev.slice();
-      const idx = next.findIndex((e) => e.id === id);
+      const idx = next.findIndex((eventItem) => eventItem.id === id);
       if (idx >= 0) next[idx] = updated;
       return next.sort((a, b) => a.start.getTime() - b.start.getTime());
     });
@@ -60,7 +64,7 @@ export function useCalendarEvents() {
 
   const remove = useCallback((id: string) => {
     calendarService.remove(id);
-    setData((prev) => prev.filter((e) => e.id !== id));
+    setData((prev) => prev.filter((eventItem) => eventItem.id !== id));
   }, []);
 
   const reset = useCallback(async () => {

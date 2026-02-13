@@ -1,3 +1,5 @@
+import { DEMO_MODE } from "@/config/env";
+
 export type CalendarEvent = {
   id: string;
   title: string;
@@ -5,8 +7,6 @@ export type CalendarEvent = {
   end: Date;
   allDay?: boolean;
 };
-
-import { DEMO_MODE } from "@/config/env";
 
 type StoredCalendarEvent = Omit<CalendarEvent, "start" | "end"> & {
   start: string;
@@ -20,59 +20,57 @@ function canUseStorage() {
 }
 
 function newId() {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `evt_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+  const randomUUID = globalThis.crypto?.randomUUID;
+  if (typeof randomUUID === "function") {
+    return randomUUID.call(globalThis.crypto);
+  }
+  return `evt_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-function serialize(e: CalendarEvent): StoredCalendarEvent {
+function serialize(eventItem: CalendarEvent): StoredCalendarEvent {
   return {
-    ...e,
-    start: e.start.toISOString(),
-    end: e.end.toISOString(),
+    ...eventItem,
+    start: eventItem.start.toISOString(),
+    end: eventItem.end.toISOString(),
   };
 }
 
-function revive(e: StoredCalendarEvent): CalendarEvent {
+function revive(eventItem: StoredCalendarEvent): CalendarEvent {
   return {
-    ...e,
-    start: new Date(e.start),
-    end: new Date(e.end),
+    ...eventItem,
+    start: new Date(eventItem.start),
+    end: new Date(eventItem.end),
   };
 }
 
 function seedEvents(now = new Date()): CalendarEvent[] {
-  const y = now.getFullYear();
-  const m = now.getMonth();
-
-  const at = (day: number, hour: number, minute = 0) => new Date(y, m, day, hour, minute);
-
-  // eventos próximos para sempre aparecer algo na demo
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const at = (day: number, hour: number, minute = 0) => new Date(year, month, day, hour, minute);
   const baseDay = Math.max(1, now.getDate());
 
   return [
     {
       id: newId(),
-      title: "Reunião de Coordenação",
+      title: "Reuniao de Coordenacao",
       start: at(baseDay, 10, 0),
       end: at(baseDay, 11, 0),
     },
     {
       id: newId(),
-      title: "Prazo de Validação de Documentos",
+      title: "Prazo de Validacao de Documentos",
       start: at(baseDay + 1, 14, 0),
       end: at(baseDay + 1, 15, 0),
     },
     {
       id: newId(),
-      title: "Aprovação de Grade de Horários",
+      title: "Aprovacao de Grade de Horarios",
       start: at(baseDay + 3, 9, 0),
       end: at(baseDay + 3, 10, 0),
     },
     {
       id: newId(),
-      title: "Reunião com Corpo Docente",
+      title: "Reuniao com Corpo Docente",
       start: at(baseDay + 5, 16, 0),
       end: at(baseDay + 5, 17, 0),
     },
@@ -85,7 +83,6 @@ function readAll(): CalendarEvent[] {
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     if (!DEMO_MODE) return [];
-
     const seeded = seedEvents();
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded.map(serialize)));
     return seeded;
@@ -101,10 +98,7 @@ function readAll(): CalendarEvent[] {
 
 function writeAll(events: CalendarEvent[]) {
   if (!canUseStorage()) return;
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(events.map(serialize))
-  );
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events.map(serialize)));
 }
 
 export const calendarService = {
@@ -115,14 +109,13 @@ export const calendarService = {
   create(input: Omit<CalendarEvent, "id">): CalendarEvent {
     const events = readAll();
     const created: CalendarEvent = { ...input, id: newId() };
-    const next = [...events, created];
-    writeAll(next);
+    writeAll([...events, created]);
     return created;
   },
 
   update(id: string, patch: Partial<Omit<CalendarEvent, "id">>): CalendarEvent | null {
     const events = readAll();
-    const idx = events.findIndex((e) => e.id === id);
+    const idx = events.findIndex((item) => item.id === id);
     if (idx < 0) return null;
 
     const updated: CalendarEvent = { ...events[idx], ...patch, id };
@@ -134,8 +127,7 @@ export const calendarService = {
 
   remove(id: string) {
     const events = readAll();
-    const next = events.filter((e) => e.id !== id);
-    writeAll(next);
+    writeAll(events.filter((item) => item.id !== id));
   },
 
   resetToMock() {
@@ -145,7 +137,7 @@ export const calendarService = {
 
   upcoming(limit = 5, from = new Date()): CalendarEvent[] {
     return this.list()
-      .filter((e) => e.end.getTime() >= from.getTime())
+      .filter((item) => item.end.getTime() >= from.getTime())
       .slice(0, limit);
   },
 };
