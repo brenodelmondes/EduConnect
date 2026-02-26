@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 
-import { DemoNotice } from "@/components/ui/demo-notice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DemoNotice } from "@/components/ui/demo-notice";
 import { Input } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/status-pill";
 import { useMatriculas } from "@/hooks/useMatriculas";
 import type { MatriculaStatus } from "@/services/matriculas.repository";
 
 type StatusFilter = "TODAS" | MatriculaStatus;
+
+const PAGE_SIZE = 20;
 
 function formatDate(isoDate: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(isoDate));
@@ -29,6 +31,7 @@ export function AdminMatriculas() {
   const { data, loading, error } = useMatriculas();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("TODAS");
+  const [page, setPage] = useState(1);
 
   const summary = useMemo(() => {
     const total = data.length;
@@ -51,40 +54,27 @@ export function AdminMatriculas() {
     });
   }, [data, query, status]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, currentPage]);
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Matriculas</h1>
+        <h1 className="text-3xl font-semibold">Matrículas</h1>
         <p className="text-sm text-muted-foreground">
-          Acompanhamento do fluxo de solicitacao, validacao e efetivacao.
+          Acompanhamento do fluxo de solicitação, validação e efetivação acadêmica.
         </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-2xl font-semibold">{summary.total}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Pendentes</p>
-            <p className="text-2xl font-semibold">{summary.pendentes}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Ativas</p>
-            <p className="text-2xl font-semibold">{summary.ativas}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-xs text-muted-foreground">Canceladas</p>
-            <p className="text-2xl font-semibold">{summary.canceladas}</p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Total</p><p className="text-2xl font-semibold">{summary.total}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Pendentes</p><p className="text-2xl font-semibold">{summary.pendentes}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Ativas</p><p className="text-2xl font-semibold">{summary.ativas}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Canceladas</p><p className="text-2xl font-semibold">{summary.canceladas}</p></CardContent></Card>
       </div>
 
       <Card>
@@ -93,7 +83,10 @@ export function AdminMatriculas() {
             <label className="text-xs text-muted-foreground">Buscar</label>
             <Input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
               placeholder="Aluno, curso ou turma"
             />
           </div>
@@ -101,7 +94,10 @@ export function AdminMatriculas() {
             <label className="text-xs text-muted-foreground">Status</label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value as StatusFilter)}
+              onChange={(e) => {
+                setStatus(e.target.value as StatusFilter);
+                setPage(1);
+              }}
               className="h-10 w-full rounded-md border bg-background px-3 text-sm"
             >
               <option value="TODAS">Todas</option>
@@ -121,7 +117,8 @@ export function AdminMatriculas() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>Solicitacoes de matricula</CardTitle>
+          <CardTitle>Solicitações de matrícula</CardTitle>
+          <p className="text-sm text-muted-foreground">Total filtrado: {filtered.length}</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="overflow-auto rounded-lg border">
@@ -132,7 +129,7 @@ export function AdminMatriculas() {
                   <th className="px-3 py-2 text-left font-medium">Aluno</th>
                   <th className="px-3 py-2 text-left font-medium">Curso</th>
                   <th className="px-3 py-2 text-left font-medium">Turma</th>
-                  <th className="px-3 py-2 text-left font-medium">Solicitacao</th>
+                  <th className="px-3 py-2 text-left font-medium">Solicitação</th>
                   <th className="px-3 py-2 text-left font-medium">Status</th>
                 </tr>
               </thead>
@@ -140,25 +137,23 @@ export function AdminMatriculas() {
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">
-                      Carregando matriculas...
+                      Carregando matrículas...
                     </td>
                   </tr>
-                ) : filtered.length === 0 ? (
+                ) : paginated.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">
-                      Nenhuma matricula encontrada para os filtros atuais.
+                      Nenhuma matrícula encontrada para os filtros atuais.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((row) => (
+                  paginated.map((row) => (
                     <tr key={row.id} className="border-t">
                       <td className="px-3 py-2 text-muted-foreground">{row.id}</td>
                       <td className="px-3 py-2 font-medium">{row.aluno}</td>
                       <td className="px-3 py-2">{row.curso}</td>
                       <td className="px-3 py-2 text-muted-foreground">{row.turma}</td>
-                      <td className="px-3 py-2 text-muted-foreground">
-                        {formatDate(row.dataSolicitacao)}
-                      </td>
+                      <td className="px-3 py-2 text-muted-foreground">{formatDate(row.dataSolicitacao)}</td>
                       <td className="px-3 py-2">
                         <StatusPill label={statusLabel(row.status)} tone={statusTone(row.status)} />
                       </td>
@@ -167,6 +162,30 @@ export function AdminMatriculas() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <p className="text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              >
+                Próxima
+              </button>
+            </div>
           </div>
 
           <DemoNotice />

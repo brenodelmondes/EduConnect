@@ -1,4 +1,4 @@
-import { useStudentPortal } from "@/app/student-portal";
+﻿import { useStudentPortal } from "@/app/student-portal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { Separator } from "@/components/ui/separator";
@@ -10,14 +10,14 @@ function formatDateTime(iso: string) {
 }
 
 export function AlunoHome() {
-  const { announcements, courses, loading, error } = useStudentPortal();
+  const { announcements, courses, upcoming, loading, error } = useStudentPortal();
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
       <div>
-        <h1 className="text-2xl font-semibold">Pagina inicial</h1>
+        <h1 className="text-3xl font-semibold">Página inicial</h1>
         <p className="text-sm text-muted-foreground">
-          Comunicados e destaques da sua jornada academica.
+          Comunicados e destaques da sua jornada acadêmica.
         </p>
       </div>
 
@@ -42,9 +42,7 @@ export function AlunoHome() {
                 <div key={item.id} className="rounded-md border p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-muted-foreground">{item.category}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDateTime(item.createdAt)}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{formatDateTime(item.createdAt)}</span>
                   </div>
                   <p className="mt-1 text-sm font-medium">{item.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{item.body}</p>
@@ -64,7 +62,7 @@ export function AlunoHome() {
             {loading ? (
               <p className="text-sm text-muted-foreground">Carregando...</p>
             ) : courses.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma matricula encontrada.</p>
+              <p className="text-sm text-muted-foreground">Nenhuma matrícula encontrada.</p>
             ) : (
               courses.slice(0, 6).map((item) => (
                 <div key={item.id} className="flex items-center justify-between rounded-md border p-2">
@@ -79,10 +77,28 @@ export function AlunoHome() {
               ))
             )}
 
-            <DemoNotice className="mt-2" text="Conteudo hibrido: API quando disponivel, com fallback para demonstracao." />
+            <DemoNotice className="mt-2" />
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Próximos eventos</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {upcoming.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum evento agendado.</p>
+          ) : (
+            upcoming.map((item) => (
+              <div key={item.id} className="rounded-md border p-3">
+                <p className="text-sm font-medium">{item.title}</p>
+                <p className="text-xs text-muted-foreground">{formatDateTime(item.start.toISOString())}</p>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -426,3 +426,35 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# dependencies
+node_modules/
+
+# builds
+dist/
+build/
+.next/
+out/
+
+# env
+.env
+.env.*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# cache
+.vite/
+.eslintcache
+.cache/
+coverage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

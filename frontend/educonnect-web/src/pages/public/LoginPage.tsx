@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useAuth } from "@/app/auth";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,8 +14,8 @@ import { API_URL } from "@/config/env";
 import { authService } from "@/services/auth";
 
 const schema = z.object({
-  email: z.string().email(),
-  senha: z.string().min(3),
+  email: z.string().email("Informe um e-mail válido"),
+  senha: z.string().min(3, "Informe sua senha"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -35,14 +36,16 @@ export function LoginPage() {
 
   const goToHomeByRole = (role: "ADMIN" | "PROFESSOR" | "ALUNO") => {
     if (role === "ADMIN") navigate("/admin/dashboard");
-    if (role === "PROFESSOR") navigate("/professor/dashboard");
+    if (role === "PROFESSOR") navigate("/professor/painel");
     if (role === "ALUNO") navigate("/aluno/inicio");
   };
 
   const demoLogin = (email: string) => {
     const value = email.toLowerCase();
     const role = value.includes("admin") ? "ADMIN" : value.includes("prof") ? "PROFESSOR" : "ALUNO";
-    login("mock-token", role, null, "Modo demonstracao");
+    const userHash = Array.from(value).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const demoUserId = role === "ADMIN" ? 1 : role === "PROFESSOR" ? 200 + (userHash % 50) : 1000 + (userHash % 200);
+    login("mock-token", role, demoUserId, "Modo demonstração");
     goToHomeByRole(role);
   };
 
@@ -63,8 +66,8 @@ export function LoginPage() {
     } catch {
       setSubmitError(
         API_URL
-          ? "Nao foi possivel autenticar na API. Verifique o backend e tente novamente."
-          : "Modo demonstracao indisponivel."
+          ? "Não foi possível autenticar na API. Verifique o backend e tente novamente."
+          : "Modo demonstração indisponível."
       );
       setCanUseDemoFallback(true);
     } finally {
@@ -74,15 +77,18 @@ export function LoginPage() {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
-        <CardDescription>Entre para acessar sua area no EduConnect.</CardDescription>
+      <CardHeader className="space-y-3">
+        <BrandMark />
+        <div>
+          <CardTitle>Entrar no portal</CardTitle>
+          <CardDescription>Acesse sua área acadêmica no EduConnect.</CardDescription>
+        </div>
       </CardHeader>
 
       <CardContent className="grid gap-4">
         <form className="grid gap-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input id="email" placeholder="seu@email.com" {...form.register("email")} />
             {form.formState.errors.email ? (
               <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
@@ -106,7 +112,7 @@ export function LoginPage() {
               <p className="text-sm text-destructive">{submitError}</p>
               {canUseDemoFallback ? (
                 <Button type="button" variant="outline" onClick={() => demoLogin(form.getValues("email"))}>
-                  Entrar em modo demonstracao
+                  Entrar em modo demonstração
                 </Button>
               ) : null}
             </div>
@@ -115,11 +121,11 @@ export function LoginPage() {
           <p className="text-xs text-muted-foreground">
             {preferApi ? (
               <>
-                Conectado a API: <b>{API_URL}</b>
+                Conectado à API: <b>{API_URL}</b>
               </>
             ) : (
               <>
-                Dica para demo: email contendo <b>admin</b> ou <b>prof</b> muda o perfil.
+                Dica para demo: e-mail com <b>admin</b> ou <b>prof</b> altera o perfil.
               </>
             )}
           </p>

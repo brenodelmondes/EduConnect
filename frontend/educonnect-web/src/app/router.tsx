@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+﻿import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import { ProtectedRoute } from "@/app/protected-route";
@@ -31,6 +31,24 @@ const AdminMatriculas = lazy(() =>
 const ProfessorDashboard = lazy(() =>
   import("@/pages/professor/ProfessorDashboard").then((m) => ({ default: m.ProfessorDashboard }))
 );
+const ProfessorHome = lazy(() =>
+  import("@/pages/professor/ProfessorHome").then((m) => ({ default: m.ProfessorHome }))
+);
+const ProfessorPanel = lazy(() =>
+  import("@/pages/professor/ProfessorPanel").then((m) => ({ default: m.ProfessorPanel }))
+);
+const ProfessorCourses = lazy(() =>
+  import("@/pages/professor/ProfessorCourses").then((m) => ({ default: m.ProfessorCourses }))
+);
+const ProfessorServices = lazy(() =>
+  import("@/pages/professor/ProfessorServices").then((m) => ({ default: m.ProfessorServices }))
+);
+const ProfessorGrades = lazy(() =>
+  import("@/pages/professor/ProfessorGrades").then((m) => ({ default: m.ProfessorGrades }))
+);
+const ProfessorCalendar = lazy(() =>
+  import("@/pages/professor/ProfessorCalendar").then((m) => ({ default: m.ProfessorCalendar }))
+);
 
 const AlunoDashboard = lazy(() =>
   import("@/pages/aluno/AlunoDashboard").then((m) => ({ default: m.AlunoDashboard }))
@@ -40,6 +58,9 @@ const AlunoHome = lazy(() =>
 );
 const AlunoPanel = lazy(() =>
   import("@/pages/aluno/AlunoPanel").then((m) => ({ default: m.AlunoPanel }))
+);
+const AlunoCalendar = lazy(() =>
+  import("@/pages/aluno/AlunoCalendar").then((m) => ({ default: m.AlunoCalendar }))
 );
 const AlunoCourses = lazy(() =>
   import("@/pages/aluno/AlunoCourses").then((m) => ({ default: m.AlunoCourses }))
@@ -98,7 +119,16 @@ export const router = createBrowserRouter([
       {
         path: "/professor",
         element: <ProfessorLayout />,
-        children: [{ path: "dashboard", element: withSuspense(<ProfessorDashboard />) }],
+        children: [
+          { index: true, element: <Navigate to="painel" replace /> },
+          { path: "dashboard", element: withSuspense(<ProfessorDashboard />) },
+          { path: "inicio", element: withSuspense(<ProfessorHome />) },
+          { path: "painel", element: withSuspense(<ProfessorPanel />) },
+          { path: "meus-cursos", element: withSuspense(<ProfessorCourses />) },
+          { path: "servicos-digitais", element: withSuspense(<ProfessorServices />) },
+          { path: "notas", element: withSuspense(<ProfessorGrades />) },
+          { path: "calendario", element: withSuspense(<ProfessorCalendar />) },
+        ],
       },
     ],
   },
@@ -113,6 +143,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="inicio" replace /> },
           { path: "inicio", element: withSuspense(<AlunoHome />) },
           { path: "painel", element: withSuspense(<AlunoPanel />) },
+          { path: "calendario", element: withSuspense(<AlunoCalendar />) },
           { path: "meus-cursos", element: withSuspense(<AlunoCourses />) },
           { path: "servicos-digitais", element: withSuspense(<AlunoServices />) },
           { path: "notas", element: withSuspense(<AlunoGrades />) },

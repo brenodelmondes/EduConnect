@@ -1,8 +1,9 @@
-import { Bell, ChevronDown, GraduationCap } from "lucide-react";
+﻿import { Bell, ChevronDown } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/app/auth";
 import { useStudentPortal } from "@/app/student-portal";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,14 +50,14 @@ export function PortalTopbar({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold hover:bg-accent"
+          className="inline-flex items-center gap-2 rounded-md px-2 py-1 hover:bg-accent"
           onClick={() => navigate(homeTo)}
+          aria-label="Voltar ao início"
         >
-          <GraduationCap className="h-4 w-4" />
-          EduConnect
+          <BrandMark variant="compact" />
         </button>
 
         <nav className="hidden flex-1 items-center gap-1 md:flex">
@@ -82,7 +83,7 @@ export function PortalTopbar({
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Notificacoes">
+              <Button variant="ghost" size="icon" aria-label="Notificações">
                 <span className="relative">
                   <Bell className="h-4 w-4" />
                   {unreadCount > 0 ? (
@@ -94,10 +95,10 @@ export function PortalTopbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notificacoes</DropdownMenuLabel>
+              <DropdownMenuLabel>Notificações</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {notifications.length === 0 ? (
-                <div className="px-2 py-6 text-sm text-muted-foreground">Sem notificacoes no momento.</div>
+                <div className="px-2 py-6 text-sm text-muted-foreground">Sem notificações no momento.</div>
               ) : (
                 notifications.slice(0, 8).map((item) => (
                   <DropdownMenuItem
@@ -130,9 +131,7 @@ export function PortalTopbar({
               <DropdownMenuSeparator />
               {preferencesPath ? (
                 <>
-                  <DropdownMenuItem onSelect={() => navigate(preferencesPath)}>
-                    Preferencias
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => navigate(preferencesPath)}>Preferências</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               ) : null}

@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
+﻿import { NavLink, Outlet } from "react-router-dom";
 
+import { BrandMark } from "@/components/brand/BrandMark";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function PublicLayout() {
@@ -8,23 +9,19 @@ export function PublicLayout() {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(14,165,233,0.16),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.2),transparent_55%)]" />
 
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <span className="font-semibold">EduConnect</span>
+            <BrandMark />
             <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-              <NavLink to="/login" className={({ isActive }) => (isActive ? "text-foreground" : "")}>
-                Login
-              </NavLink>
-              <NavLink to="/inscricao" className={({ isActive }) => (isActive ? "text-foreground" : "")}>
-                Inscricao
-              </NavLink>
+              <NavLink to="/login" className={({ isActive }) => (isActive ? "text-foreground" : "")}>Login</NavLink>
+              <NavLink to="/inscricao" className={({ isActive }) => (isActive ? "text-foreground" : "")}>Inscrição</NavLink>
             </nav>
           </div>
           <ThemeToggle />
         </div>
       </header>
 
-      <main className="mx-auto grid min-h-[calc(100vh-3.5rem)] max-w-6xl place-items-center px-4 py-10">
+      <main className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl place-items-center px-4 py-10">
         <Outlet />
       </main>
     </div>

@@ -1,10 +1,10 @@
-type DemoNoticeProps = {
+﻿type DemoNoticeProps = {
   text?: string;
   className?: string;
 };
 
 const DEFAULT_TEXT =
-  "Dados simulados (modo demonstracao). Integracao com API na proxima etapa.";
+  "Dados simulados (modo demonstração). Integração com API na próxima etapa.";
 
 export function DemoNotice({ text = DEFAULT_TEXT, className = "" }: DemoNoticeProps) {
   return (

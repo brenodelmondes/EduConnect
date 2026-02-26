@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+﻿import { Outlet } from "react-router-dom";
 
 import { StudentPortalProvider } from "@/app/student-portal";
 import { PortalTopbar } from "@/components/portal-topbar";
@@ -11,10 +11,11 @@ export function AlunoLayout() {
           homeTo="/aluno/inicio"
           preferencesTo="/aluno/preferencias"
           links={[
-            { label: "Inicio", to: "/aluno/inicio" },
+            { label: "Início", to: "/aluno/inicio" },
             { label: "Painel", to: "/aluno/painel" },
             { label: "Meus cursos", to: "/aluno/meus-cursos" },
-            { label: "Servicos digitais", to: "/aluno/servicos-digitais" },
+            { label: "Calendário", to: "/aluno/calendario" },
+            { label: "Serviços digitais", to: "/aluno/servicos-digitais" },
             { label: "Notas", to: "/aluno/notas" },
           ]}
         />
@@ -26,3 +27,4 @@ export function AlunoLayout() {
     </StudentPortalProvider>
   );
 }
+

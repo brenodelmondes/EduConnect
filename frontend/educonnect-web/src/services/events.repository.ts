@@ -1,5 +1,5 @@
-import { DEMO_MODE } from "@/config/env";
-import { type CalendarEvent, calendarService } from "@/services/calendar";
+﻿import { DEMO_MODE } from "@/config/env";
+import { type CalendarContext, type CalendarEvent, calendarService } from "@/services/calendar";
 import { api } from "@/services/api";
 
 type ApiEvento = {
@@ -29,6 +29,8 @@ function mapApiEvento(input: ApiEvento): CalendarEvent {
     title,
     start,
     end,
+    createdByRole: "API",
+    scope: "INSTITUCIONAL",
   };
 }
 
@@ -40,8 +42,8 @@ function mergeById(apiEvents: CalendarEvent[], localEvents: CalendarEvent[]) {
 }
 
 export const eventsRepository = {
-  async list(): Promise<CalendarEvent[]> {
-    const localEvents = calendarService.list();
+  async list(context: CalendarContext): Promise<CalendarEvent[]> {
+    const localEvents = calendarService.list(context);
     if (DEMO_MODE) return localEvents;
 
     try {

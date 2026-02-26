@@ -1,4 +1,4 @@
-import { API_URL } from "@/config/env";
+﻿import { API_URL } from "@/config/env";
 import { calendarService } from "@/services/calendar";
 import { api } from "@/services/api";
 
@@ -20,7 +20,7 @@ export type StudentAnnouncement = {
   body: string;
   createdAt: string;
   author: string;
-  category: "Academico" | "Institucional" | "Financeiro";
+  category: "Acadêmico" | "Institucional" | "Financeiro";
 };
 
 export type StudentNotification = {
@@ -36,7 +36,7 @@ export type StudentGradeRow = {
   courseTitle: string;
   track: StudentTrack;
   grade: number | null;
-  status: "Aprovado" | "Em recuperacao" | "Pendente";
+  status: "Aprovado" | "Em recuperação" | "Pendente";
 };
 
 type ApiCurso = {
@@ -68,13 +68,9 @@ type ApiEvento = {
 type ApiAluno = {
   id?: number;
   usuarioId?: number;
-  usuarioNome?: string;
-  usuarioEmail?: string;
 
   Id?: number;
   UsuarioId?: number;
-  UsuarioNome?: string;
-  UsuarioEmail?: string;
 };
 
 function asTrack(raw: unknown): StudentTrack {
@@ -96,34 +92,33 @@ function daysFromNowIso(days: number) {
   return date.toISOString();
 }
 
-function demoCourses(): StudentCourseCard[] {
-  const base: Array<
-    Pick<StudentCourseCard, "title" | "track" | "teacherName" | "semesterLabel">
-  > = [
-    { title: "Algoritmos e Programacao", track: "ADS", teacherName: "Profa. Camila", semesterLabel: "2026.1" },
+function userOffset(userId?: number | null) {
+  if (typeof userId !== "number" || !Number.isFinite(userId)) return 0;
+  return Math.abs(userId) % 7;
+}
+
+function demoCourses(userId?: number | null): StudentCourseCard[] {
+  const offset = userOffset(userId);
+  const base: Array<Pick<StudentCourseCard, "title" | "track" | "teacherName" | "semesterLabel">> = [
+    { title: "Algoritmos e Programação", track: "ADS", teacherName: "Profa. Camila", semesterLabel: "2026.1" },
     { title: "Banco de Dados", track: "ADS", teacherName: "Prof. Renato", semesterLabel: "2026.1" },
     { title: "Engenharia de Software", track: "ENG", teacherName: "Profa. Luana", semesterLabel: "2026.1" },
     { title: "Arquitetura em Nuvem", track: "SI", teacherName: "Prof. Diego", semesterLabel: "2026.1" },
-    { title: "Estruturas de Dados", track: "CCO", teacherName: "Prof. Andre", semesterLabel: "2026.1" },
+    { title: "Estruturas de Dados", track: "CCO", teacherName: "Prof. André", semesterLabel: "2026.1" },
     { title: "Desenvolvimento Web", track: "ADS", teacherName: "Profa. Bruna", semesterLabel: "2026.1" },
     { title: "DevOps e Observabilidade", track: "SI", teacherName: "Prof. Marcelo", semesterLabel: "2026.1" },
     { title: "Projeto Integrador", track: "ENG", teacherName: "Profa. Fernanda", semesterLabel: "2026.1" },
   ];
 
-  return base.map((item, index) => {
-    const progress = clamp01To100(18 + ((index * 13) % 70));
-    const dueAt = daysFromNowIso(2 + (index % 7));
+  return base.slice(offset, offset + 6).concat(base.slice(0, Math.max(0, offset - 2))).slice(0, 6).map((item, index) => {
+    const progress = clamp01To100(18 + ((index * 13 + offset * 9) % 70));
+    const dueAt = daysFromNowIso(2 + ((index + offset) % 7));
     return {
-      id: `demo_course_${index + 1}`,
+      id: `demo_course_${offset}_${index + 1}`,
       ...item,
       progress,
       nextItem: {
-        label:
-          index % 3 === 0
-            ? "Entrega de atividade"
-            : index % 3 === 1
-              ? "Checkpoint"
-              : "Aula sincrona",
+        label: index % 3 === 0 ? "Entrega de atividade" : index % 3 === 1 ? "Checkpoint" : "Aula síncrona",
         dueAt,
       },
     };
@@ -152,21 +147,21 @@ function demoAnnouncements(): StudentAnnouncement[] {
       "Planejamento de aulas - semana 3",
       "Disponibilizamos o cronograma atualizado e materiais complementares para as disciplinas matriculadas.",
       1,
-      "Academico",
-      "Secretaria Academica"
+      "Acadêmico",
+      "Secretaria Acadêmica"
     ),
     create(
       "a2",
-      "Manutencao programada do portal",
-      "O portal pode apresentar instabilidade no sabado, das 22h as 23h30, para atualizacao de infraestrutura.",
+      "Manutenção programada do portal",
+      "O portal pode apresentar instabilidade no sábado, das 22h às 23h30, para atualização de infraestrutura.",
       3,
       "Institucional",
-      "TI Academico"
+      "TI Acadêmico"
     ),
     create(
       "a3",
-      "Boleto/recorrencia - conferencia cadastral",
-      "Se houver divergencia de dados, atualize suas informacoes em Preferencias para evitar atrasos.",
+      "Boleto/recorrência - conferência cadastral",
+      "Se houver divergência de dados, atualize suas informações em Preferências para evitar atrasos.",
       6,
       "Financeiro",
       "Financeiro"
@@ -178,8 +173,7 @@ function demoGrades(courses: StudentCourseCard[]): StudentGradeRow[] {
   return courses.slice(0, 7).map((item, index) => {
     const raw = 7.2 + ((index * 0.6) % 2.8);
     const grade = index % 4 === 3 ? null : Math.round(raw * 10) / 10;
-    const status: StudentGradeRow["status"] =
-      grade == null ? "Pendente" : grade >= 6 ? "Aprovado" : "Em recuperacao";
+    const status: StudentGradeRow["status"] = grade == null ? "Pendente" : grade >= 6 ? "Aprovado" : "Em recuperação";
     return {
       id: `g_${item.id}`,
       courseTitle: item.title,
@@ -205,22 +199,20 @@ function demoNotifications(): StudentNotification[] {
       id: "n_action_1",
       title: "Atividade cadastrada: Projeto Integrador",
       createdAt: daysFromNowIso(-1),
-      category: "Academico",
+      category: "Acadêmico",
       unread: true,
     },
     {
       id: "n_action_2",
       title: "Nota publicada: Banco de Dados",
       createdAt: daysFromNowIso(-4),
-      category: "Academico",
+      category: "Acadêmico",
       unread: false,
     },
     ...base,
   ];
 
-  return actionItems.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return actionItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 function mapApiCurso(course: ApiCurso, index: number): StudentCourseCard {
@@ -245,12 +237,12 @@ function mapApiEventoToNotification(eventItem: ApiEvento, index: number): Studen
   const id = eventItem.id ?? eventItem.Id ?? `evt_${index}`;
   const title = eventItem.titulo ?? eventItem.Titulo ?? "Evento";
   const createdAt = eventItem.dataEvento ?? eventItem.DataEvento ?? new Date().toISOString();
-  const rawCategory = String(eventItem.categoria ?? eventItem.Categoria ?? "Academico").toLowerCase();
+  const rawCategory = String(eventItem.categoria ?? eventItem.Categoria ?? "Acadêmico").toLowerCase();
   const category: StudentNotification["category"] = rawCategory.includes("fin")
     ? "Financeiro"
     : rawCategory.includes("inst")
       ? "Institucional"
-      : "Academico";
+      : "Acadêmico";
 
   return {
     id: String(id),
@@ -266,8 +258,8 @@ export const portalService = {
     return !!API_URL;
   },
 
-  async listCourses(): Promise<StudentCourseCard[]> {
-    const fallback = demoCourses();
+  async listCourses(userId?: number | null): Promise<StudentCourseCard[]> {
+    const fallback = demoCourses(userId);
     if (!API_URL) return fallback;
 
     try {
@@ -310,7 +302,7 @@ export const portalService = {
     semester: string;
   }): Promise<{ bytes: ArrayBuffer; filename: string }> {
     if (!API_URL) {
-      throw new Error("API_URL nao configurada");
+      throw new Error("API_URL não configurada");
     }
 
     const studentsResponse = await api.get<ApiAluno[]>("/Alunos");
@@ -319,7 +311,7 @@ export const portalService = {
     const student = studentsData.find((item) => (item.usuarioId ?? item.UsuarioId) === input.userId);
     const alunoId = student?.id ?? student?.Id;
     if (!alunoId) {
-      throw new Error("Nao foi possivel localizar o aluno vinculado a este usuario.");
+      throw new Error("Não foi possível localizar o aluno vinculado a este usuário.");
     }
 
     const semester = encodeURIComponent(input.semester);
@@ -332,10 +324,11 @@ export const portalService = {
     };
   },
 
-  listUpcomingFromCalendar(limit = 6) {
+  listUpcomingFromCalendar(input: { role: "ADMIN" | "PROFESSOR" | "ALUNO"; userId?: number | null; limit?: number }) {
     const from = new Date();
+    const limit = input.limit ?? 6;
     return calendarService
-      .list()
+      .list({ role: input.role, userId: input.userId })
       .slice()
       .sort((a, b) => a.start.getTime() - b.start.getTime())
       .filter((item) => item.end.getTime() >= from.getTime())

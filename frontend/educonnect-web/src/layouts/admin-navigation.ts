@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+﻿import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
   ClipboardList,
@@ -22,13 +22,13 @@ export type AdminNavGroup = {
 
 export const adminNavGroups: AdminNavGroup[] = [
   {
-    label: "Visao Geral",
+    label: "Visão Geral",
     items: [
       {
         label: "Dashboard",
         to: "/admin/dashboard",
         icon: LayoutDashboard,
-        description: "Indicadores academicos, pendencias e performance do semestre.",
+        description: "Indicadores acadêmicos, pendências e performance do semestre.",
       },
     ],
   },
@@ -39,33 +39,33 @@ export const adminNavGroups: AdminNavGroup[] = [
         label: "Alunos",
         to: "/admin/alunos",
         icon: Users,
-        description: "Base academica, status e acompanhamento de estudantes.",
+        description: "Base acadêmica, status e acompanhamento de estudantes.",
       },
       {
         label: "Professores",
         to: "/admin/professores",
         icon: GraduationCap,
-        description: "Gestao de docentes e distribuicao de responsabilidades.",
+        description: "Gestão de docentes e distribuição de responsabilidades.",
       },
     ],
   },
   {
-    label: "Operacao",
+    label: "Operação",
     items: [
       {
         label: "Turmas",
         to: "/admin/turmas",
         icon: School2,
-        description: "Turmas ativas, alocacao de docentes e ocupacao.",
+        description: "Turmas ativas, alocação de docentes e ocupação.",
       },
       {
-        label: "Matriculas",
+        label: "Matrículas",
         to: "/admin/matriculas",
         icon: ClipboardList,
-        description: "Solicitacoes, aprovacoes e status das matriculas.",
+        description: "Solicitações, aprovações e status das matrículas.",
       },
       {
-        label: "Calendario",
+        label: "Calendário",
         to: "/admin/calendario",
         icon: CalendarDays,
         description: "Agenda institucional com eventos administrativos.",

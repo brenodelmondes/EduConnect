@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   createContext,
   useCallback,
   useContext,
@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 
+import { useAuth } from "@/app/auth";
 import {
   portalService,
   type StudentAnnouncement,
@@ -34,6 +35,7 @@ function delay(ms: number) {
 }
 
 export function StudentPortalProvider({ children }: { children: React.ReactNode }) {
+  const { userId } = useAuth();
   const mounted = useRef(true);
 
   const [courses, setCourses] = useState<StudentCourseCard[]>([]);
@@ -43,7 +45,10 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const upcoming = useMemo(() => portalService.listUpcomingFromCalendar(6), []);
+  const upcoming = useMemo(
+    () => portalService.listUpcomingFromCalendar({ role: "ALUNO", userId, limit: 6 }),
+    [userId]
+  );
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -52,7 +57,7 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
     try {
       await delay(300);
       const [courseRows, announcementRows, notificationRows] = await Promise.all([
-        portalService.listCourses(),
+        portalService.listCourses(userId),
         portalService.listAnnouncements(),
         portalService.listNotifications(),
       ]);
@@ -66,7 +71,7 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
       }
     } catch {
       if (mounted.current) {
-        setError("Nao foi possivel carregar informacoes do portal.");
+        setError("Não foi possível carregar informações do portal.");
         setCourses([]);
         setAnnouncements([]);
         setNotifications([]);
@@ -77,7 +82,7 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
         setLoading(false);
       }
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     mounted.current = true;

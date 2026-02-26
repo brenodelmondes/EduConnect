@@ -1,7 +1,8 @@
-import { NavLink, Outlet } from "react-router-dom";
+﻿import { NavLink, Outlet } from "react-router-dom";
 
-import { cn } from "@/lib/utils";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { cn } from "@/lib/utils";
 import { adminNavGroups } from "@/layouts/admin-navigation";
 
 const navItemClass =
@@ -13,8 +14,8 @@ export function AdminLayout() {
       <div className="flex">
         <aside className="hidden w-72 border-r bg-background/90 md:sticky md:top-0 md:flex md:h-screen md:flex-col md:shrink-0">
           <div className="border-b px-5 py-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">EduConnect</p>
-            <p className="mt-1 text-lg font-semibold">Console Admin</p>
+            <BrandMark />
+            <p className="mt-2 text-lg font-semibold">Console Admin</p>
           </div>
 
           <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
