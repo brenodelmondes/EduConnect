@@ -1,4 +1,4 @@
-import { DEMO_MODE } from "@/config/env";
+import { API_URL, STRICT_API, USE_DEMO_FALLBACK } from "@/config/env";
 import { api } from "@/services/api";
 import { studentsService, type StudentRecord } from "@/services/students";
 
@@ -6,14 +6,11 @@ type ApiAluno = {
   id?: number;
   usuarioNome?: string;
   usuarioEmail?: string;
-  ra?: string;
   cursoNome?: string;
 
-  // fallback PascalCase
   Id?: number;
   UsuarioNome?: string;
   UsuarioEmail?: string;
-  Ra?: string;
   CursoNome?: string;
 };
 
@@ -25,12 +22,11 @@ function todayIso() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function mapApiAluno(a: ApiAluno): StudentRecord & { ra?: string } {
-  const id = a.id ?? a.Id;
-  const name = a.usuarioNome ?? a.UsuarioNome;
-  const email = a.usuarioEmail ?? a.UsuarioEmail;
-  const course = a.cursoNome ?? a.CursoNome;
-  const ra = a.ra ?? a.Ra;
+function mapApiAluno(input: ApiAluno): StudentRecord {
+  const id = input.id ?? input.Id;
+  const name = input.usuarioNome ?? input.UsuarioNome;
+  const email = input.usuarioEmail ?? input.UsuarioEmail;
+  const course = input.cursoNome ?? input.CursoNome;
 
   if (!id || !name || !email || !course) {
     throw new Error("API retornou aluno em formato inesperado");
@@ -43,19 +39,31 @@ function mapApiAluno(a: ApiAluno): StudentRecord & { ra?: string } {
     course,
     active: true,
     enrolledAt: todayIso(),
-    ra,
   };
 }
 
 export const studentsRepository = {
-  async list(): Promise<Array<StudentRecord & { ra?: string }>> {
-    if (DEMO_MODE) return studentsService.list();
+  async list(): Promise<StudentRecord[]> {
+    if (USE_DEMO_FALLBACK) return studentsService.list();
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar alunos em modo estrito");
+      }
+      return studentsService.list();
+    }
 
     try {
-      const res = await api.get<ApiAluno[]>("/Alunos");
-      const data = Array.isArray(res.data) ? res.data : [];
+      const response = await api.get<ApiAluno[]>("/Alunos");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de alunos em modo estrito");
+        }
+        return studentsService.list();
+      }
       return data.map(mapApiAluno);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return studentsService.list();
     }
   },

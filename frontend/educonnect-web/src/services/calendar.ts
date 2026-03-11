@@ -1,95 +1,102 @@
-export type CalendarEvent = {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
-};
+﻿import { DEMO_MODE, STRICT_API } from "@/config/env";
+import type { CalendarEvent } from "@/types/academic";
+import type { UserRole } from "@/utils/storage";
 
-import { DEMO_MODE } from "@/config/env";
+export type { CalendarEvent } from "@/types/academic";
 
 type StoredCalendarEvent = Omit<CalendarEvent, "start" | "end"> & {
   start: string;
   end: string;
 };
 
-const STORAGE_KEY = "educonnect:calendar-events:v1";
+export type CalendarContext = {
+  role: UserRole;
+  userId?: number | null;
+};
+
+const GLOBAL_KEY = "educonnect:calendar:v3:global";
+
+function personalKey(userId: number | null | undefined) {
+  return `educonnect:calendar:v3:ALUNO:${typeof userId === "number" ? userId : 0}`;
+}
 
 function canUseStorage() {
   return typeof window !== "undefined" && !!window.localStorage;
 }
 
 function newId() {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `evt_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+  const randomUUID = globalThis.crypto?.randomUUID;
+  if (typeof randomUUID === "function") {
+    return randomUUID.call(globalThis.crypto);
+  }
+  return `evt_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-function serialize(e: CalendarEvent): StoredCalendarEvent {
+function serialize(eventItem: CalendarEvent): StoredCalendarEvent {
   return {
-    ...e,
-    start: e.start.toISOString(),
-    end: e.end.toISOString(),
+    ...eventItem,
+    start: eventItem.start.toISOString(),
+    end: eventItem.end.toISOString(),
   };
 }
 
-function revive(e: StoredCalendarEvent): CalendarEvent {
+function revive(eventItem: StoredCalendarEvent): CalendarEvent {
   return {
-    ...e,
-    start: new Date(e.start),
-    end: new Date(e.end),
+    ...eventItem,
+    start: new Date(eventItem.start),
+    end: new Date(eventItem.end),
   };
 }
 
-function seedEvents(now = new Date()): CalendarEvent[] {
-  const y = now.getFullYear();
-  const m = now.getMonth();
+function toCalendarDate(now: Date, daysOffset: number, hour: number) {
+  const date = new Date(now);
+  date.setDate(now.getDate() + daysOffset);
+  date.setHours(hour, 0, 0, 0);
+  return date;
+}
 
-  const at = (day: number, hour: number, minute = 0) => new Date(y, m, day, hour, minute);
+function seedGlobalEvents(now = new Date()): CalendarEvent[] {
+  const adminStart = toCalendarDate(now, 1, 10);
+  const adminEnd = toCalendarDate(now, 1, 11);
 
-  // eventos próximos para sempre aparecer algo na demo
-  const baseDay = Math.max(1, now.getDate());
+  const profStart = toCalendarDate(now, 2, 19);
+  const profEnd = toCalendarDate(now, 2, 20);
+
+  const apiStart = toCalendarDate(now, 4, 9);
+  const apiEnd = toCalendarDate(now, 4, 10);
 
   return [
     {
       id: newId(),
-      title: "Reunião de Coordenação",
-      start: at(baseDay, 10, 0),
-      end: at(baseDay, 11, 0),
+      title: "Reunião de coordenação acadêmica",
+      start: adminStart,
+      end: adminEnd,
+      createdByRole: "ADMIN",
+      scope: "INSTITUCIONAL",
     },
     {
       id: newId(),
-      title: "Prazo de Validação de Documentos",
-      start: at(baseDay + 1, 14, 0),
-      end: at(baseDay + 1, 15, 0),
+      title: "Plantão docente - Projeto Integrador",
+      start: profStart,
+      end: profEnd,
+      createdByRole: "PROFESSOR",
+      scope: "DOCENTE",
     },
     {
-      id: newId(),
-      title: "Aprovação de Grade de Horários",
-      start: at(baseDay + 3, 9, 0),
-      end: at(baseDay + 3, 10, 0),
-    },
-    {
-      id: newId(),
-      title: "Reunião com Corpo Docente",
-      start: at(baseDay + 5, 16, 0),
-      end: at(baseDay + 5, 17, 0),
+      id: "api_seed_1",
+      title: "Janela de ajuste de matrícula",
+      start: apiStart,
+      end: apiEnd,
+      createdByRole: "API",
+      scope: "INSTITUCIONAL",
     },
   ];
 }
 
-function readAll(): CalendarEvent[] {
-  if (!canUseStorage()) return DEMO_MODE ? seedEvents() : [];
-
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    if (!DEMO_MODE) return [];
-
-    const seeded = seedEvents();
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded.map(serialize)));
-    return seeded;
-  }
+function readFromKey(storageKey: string): CalendarEvent[] {
+  if (!canUseStorage()) return [];
+  const raw = window.localStorage.getItem(storageKey);
+  if (!raw) return [];
 
   try {
     const parsed = JSON.parse(raw) as StoredCalendarEvent[];
@@ -99,53 +106,182 @@ function readAll(): CalendarEvent[] {
   }
 }
 
-function writeAll(events: CalendarEvent[]) {
+function writeToKey(storageKey: string, events: CalendarEvent[]) {
   if (!canUseStorage()) return;
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(events.map(serialize))
-  );
+  window.localStorage.setItem(storageKey, JSON.stringify(events.map(serialize)));
+}
+
+function ensureGlobalSeedIfNeeded() {
+  if (!canUseStorage()) return;
+  const globalRaw = window.localStorage.getItem(GLOBAL_KEY);
+  if (globalRaw) return;
+  if (!DEMO_MODE) return;
+  writeToKey(GLOBAL_KEY, seedGlobalEvents());
+}
+
+function migrateLegacyV1IfNeeded() {
+  if (!canUseStorage()) return;
+  const legacyKey = "educonnect:calendar-events:v1";
+  const globalRaw = window.localStorage.getItem(GLOBAL_KEY);
+  if (globalRaw) return;
+
+  const oldRaw = window.localStorage.getItem(legacyKey);
+  if (!oldRaw) return;
+
+  try {
+    const parsed = JSON.parse(oldRaw) as Array<{
+      id: string;
+      title: string;
+      start: string;
+      end: string;
+      allDay?: boolean;
+    }>;
+
+    const migrated: CalendarEvent[] = Array.isArray(parsed)
+      ? parsed.map((item) => ({
+          id: item.id,
+          title: item.title,
+          start: new Date(item.start),
+          end: new Date(item.end),
+          allDay: item.allDay,
+          createdByRole: "ADMIN",
+          scope: "INSTITUCIONAL",
+        }))
+      : [];
+
+    writeToKey(GLOBAL_KEY, migrated);
+    window.localStorage.removeItem(legacyKey);
+  } catch {
+    window.localStorage.removeItem(legacyKey);
+  }
+}
+
+function listGlobalEvents(): CalendarEvent[] {
+  migrateLegacyV1IfNeeded();
+  ensureGlobalSeedIfNeeded();
+  return readFromKey(GLOBAL_KEY);
+}
+
+function listPersonalEvents(userId?: number | null): CalendarEvent[] {
+  return readFromKey(personalKey(userId));
+}
+
+function sortByDate(events: CalendarEvent[]) {
+  return events.slice().sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+function canAccessPersonal(context: CalendarContext) {
+  return context.role === "ALUNO";
 }
 
 export const calendarService = {
-  list(): CalendarEvent[] {
-    return readAll().sort((a, b) => a.start.getTime() - b.start.getTime());
+  list(context: CalendarContext): CalendarEvent[] {
+    if (STRICT_API) return [];
+    if (!canUseStorage()) return DEMO_MODE ? seedGlobalEvents() : [];
+
+    const globalEvents = listGlobalEvents();
+    if (!canAccessPersonal(context)) {
+      return sortByDate(globalEvents);
+    }
+
+    const personalEvents = listPersonalEvents(context.userId);
+    return sortByDate([...globalEvents, ...personalEvents]);
   },
 
-  create(input: Omit<CalendarEvent, "id">): CalendarEvent {
-    const events = readAll();
+  create(input: Omit<CalendarEvent, "id">, context: CalendarContext): CalendarEvent {
+    if (STRICT_API) {
+      throw new Error("Calendário local desativado em modo API estrito");
+    }
+
     const created: CalendarEvent = { ...input, id: newId() };
-    const next = [...events, created];
-    writeAll(next);
+
+    if (!canUseStorage()) return created;
+
+    if (input.scope === "PESSOAL" && canAccessPersonal(context)) {
+      const personal = listPersonalEvents(context.userId);
+      writeToKey(personalKey(context.userId), [...personal, created]);
+      return created;
+    }
+
+    const globalEvents = listGlobalEvents();
+    writeToKey(GLOBAL_KEY, [...globalEvents, created]);
     return created;
   },
 
-  update(id: string, patch: Partial<Omit<CalendarEvent, "id">>): CalendarEvent | null {
-    const events = readAll();
-    const idx = events.findIndex((e) => e.id === id);
-    if (idx < 0) return null;
+  update(
+    id: string,
+    patch: Partial<Omit<CalendarEvent, "id">>,
+    context: CalendarContext
+  ): CalendarEvent | null {
+    if (STRICT_API) {
+      throw new Error("Atualização local de calendário desativada em modo API estrito");
+    }
 
-    const updated: CalendarEvent = { ...events[idx], ...patch, id };
-    const next = events.slice();
-    next[idx] = updated;
-    writeAll(next);
+    if (!canUseStorage()) return null;
+
+    if (canAccessPersonal(context)) {
+      const key = personalKey(context.userId);
+      const personal = listPersonalEvents(context.userId);
+      const index = personal.findIndex((item) => item.id === id);
+      if (index >= 0) {
+        const updated = { ...personal[index], ...patch, id };
+        const next = personal.slice();
+        next[index] = updated;
+        writeToKey(key, next);
+        return updated;
+      }
+    }
+
+    const globalEvents = listGlobalEvents();
+    const index = globalEvents.findIndex((item) => item.id === id);
+    if (index < 0) return null;
+
+    const updated = { ...globalEvents[index], ...patch, id };
+    const next = globalEvents.slice();
+    next[index] = updated;
+    writeToKey(GLOBAL_KEY, next);
     return updated;
   },
 
-  remove(id: string) {
-    const events = readAll();
-    const next = events.filter((e) => e.id !== id);
-    writeAll(next);
-  },
+  remove(id: string, context: CalendarContext) {
+    if (STRICT_API) {
+      throw new Error("Remoção local de calendário desativada em modo API estrito");
+    }
 
-  resetToMock() {
     if (!canUseStorage()) return;
-    window.localStorage.removeItem(STORAGE_KEY);
+
+    if (canAccessPersonal(context)) {
+      const key = personalKey(context.userId);
+      const personal = listPersonalEvents(context.userId);
+      const next = personal.filter((item) => item.id !== id);
+      if (next.length !== personal.length) {
+        writeToKey(key, next);
+        return;
+      }
+    }
+
+    const globalEvents = listGlobalEvents();
+    writeToKey(
+      GLOBAL_KEY,
+      globalEvents.filter((item) => item.id !== id)
+    );
   },
 
-  upcoming(limit = 5, from = new Date()): CalendarEvent[] {
-    return this.list()
-      .filter((e) => e.end.getTime() >= from.getTime())
+  resetToMock(context: CalendarContext) {
+    if (STRICT_API) return;
+    if (!canUseStorage()) return;
+
+    if (canAccessPersonal(context)) {
+      window.localStorage.removeItem(personalKey(context.userId));
+      return;
+    }
+
+    window.localStorage.removeItem(GLOBAL_KEY);
+  },
+
+  upcoming(limit = 5, from = new Date(), context: CalendarContext): CalendarEvent[] {
+    return this.list(context)
+      .filter((item) => item.end.getTime() >= from.getTime())
       .slice(0, limit);
   },
 };

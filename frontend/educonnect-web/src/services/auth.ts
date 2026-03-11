@@ -37,7 +37,10 @@ export const authService = {
     return !!API_URL;
   },
 
-  async login(email: string, senha: string): Promise<{ token: string; role: UserRole; perfilNome: string }> {
+  async login(
+    email: string,
+    senha: string
+  ): Promise<{ token: string; role: UserRole; perfilNome: string; userId: number }> {
     if (!API_URL) {
       throw new Error("API_URL não configurada");
     }
@@ -45,8 +48,9 @@ export const authService = {
     const res = await api.post<LoginResultDto>("/Auth/login", { email, senha });
     const token = res.data.token ?? res.data.Token;
     const perfilNome = res.data.perfilNome ?? res.data.PerfilNome;
+    const userId = res.data.id ?? res.data.Id;
 
-    if (!token || !perfilNome) {
+    if (!token || !perfilNome || typeof userId !== "number") {
       throw new Error("Resposta de login inesperada");
     }
 
@@ -54,6 +58,7 @@ export const authService = {
       token,
       role: normalizeRole(perfilNome),
       perfilNome,
+      userId,
     };
   },
 };

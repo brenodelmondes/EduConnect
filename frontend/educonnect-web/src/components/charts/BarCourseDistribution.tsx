@@ -23,7 +23,7 @@ export function BarCourseDistribution({ data }: { data: Item[] }) {
         );
       })}
       <p className="pt-2 text-xs text-muted-foreground">
-        Modo demonstração — dados simulados. Integração com API na próxima etapa.
+        Indicador baseado nos dados disponíveis no ambiente.
       </p>
     </div>
   );

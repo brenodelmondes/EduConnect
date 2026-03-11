@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { teachersRepository } from "@/services/teachers.repository";
 import { teachersService, type TeacherRecord } from "@/services/teachers";
 
 function delay(ms: number) {
@@ -18,17 +19,20 @@ export function useTeachers() {
     setError(null);
 
     try {
-      await delay(450);
-      const list = teachersService.list();
-      if (!mounted.current) return;
-      setData(list);
+      await delay(300);
+      const list = await teachersRepository.list();
+      if (mounted.current) {
+        setData(list);
+      }
     } catch {
-      if (!mounted.current) return;
-      setError("Não foi possível carregar professores.");
-      setData([]);
+      if (mounted.current) {
+        setError("Nao foi possivel carregar professores.");
+        setData([]);
+      }
     } finally {
-      if (!mounted.current) return;
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   }, []);
 

@@ -1,17 +1,30 @@
-import { Outlet, Link } from "react-router-dom";
+﻿import { Outlet } from "react-router-dom";
+
+import { StudentPortalProvider } from "@/app/student-portal";
+import { PortalTopbar } from "@/components/portal-topbar";
 
 export function AlunoLayout() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", minHeight: "100vh" }}>
-      <aside style={{ padding: 16, borderRight: "1px solid var(--border)" }}>
-        <h3 style={{ marginTop: 0 }}>Aluno</h3>
-        <nav style={{ display: "grid", gap: 8 }}>
-          <Link to="/aluno/dashboard">Dashboard</Link>
-        </nav>
-      </aside>
-      <main style={{ padding: 24 }}>
-        <Outlet />
-      </main>
-    </div>
+    <StudentPortalProvider>
+      <div className="min-h-screen bg-background">
+        <PortalTopbar
+          homeTo="/aluno/inicio"
+          preferencesTo="/aluno/preferencias"
+          links={[
+            { label: "Início", to: "/aluno/inicio" },
+            { label: "Painel", to: "/aluno/painel" },
+            { label: "Meus cursos", to: "/aluno/meus-cursos" },
+            { label: "Calendário", to: "/aluno/calendario" },
+            { label: "Serviços digitais", to: "/aluno/servicos-digitais" },
+            { label: "Notas", to: "/aluno/notas" },
+          ]}
+        />
+
+        <main>
+          <Outlet />
+        </main>
+      </div>
+    </StudentPortalProvider>
   );
 }
+

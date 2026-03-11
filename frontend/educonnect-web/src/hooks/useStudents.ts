@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { studentsRepository } from "@/services/students.repository";
 import { studentsService, type StudentRecord } from "@/services/students";
 
 export type StudentRow = StudentRecord & { ra?: string };
@@ -13,7 +14,7 @@ function raFromId(id: number) {
 }
 
 function normalizeRows(rows: StudentRecord[]): StudentRow[] {
-  return rows.map((s) => ({ ...s, ra: raFromId(s.id) }));
+  return rows.map((item) => ({ ...item, ra: raFromId(item.id) }));
 }
 
 export function useStudents() {
@@ -28,17 +29,20 @@ export function useStudents() {
     setError(null);
 
     try {
-      await delay(450);
-      const list = studentsService.list();
-      if (!mounted.current) return;
-      setData(normalizeRows(list));
+      await delay(300);
+      const list = await studentsRepository.list();
+      if (mounted.current) {
+        setData(normalizeRows(list));
+      }
     } catch {
-      if (!mounted.current) return;
-      setError("Não foi possível carregar alunos.");
-      setData([]);
+      if (mounted.current) {
+        setError("Nao foi possivel carregar alunos.");
+        setData([]);
+      }
     } finally {
-      if (!mounted.current) return;
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   }, []);
 

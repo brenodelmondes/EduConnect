@@ -1,3 +1,5 @@
+import { Navigate } from "react-router-dom";
+
 export function AlunoDashboard() {
-  return <h1>Aluno Dashboard</h1>;
+  return <Navigate to="/aluno/inicio" replace />;
 }

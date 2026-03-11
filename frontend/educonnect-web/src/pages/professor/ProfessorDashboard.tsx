@@ -1,3 +1,5 @@
+﻿import { Navigate } from "react-router-dom";
+
 export function ProfessorDashboard() {
-  return <h1>Professor Dashboard</h1>;
+  return <Navigate to="/professor/painel" replace />;
 }

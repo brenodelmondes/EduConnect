@@ -1,15 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { STRICT_API } from "@/config/env";
+import { useTeachers } from "@/hooks/useTeachers";
+import { teachersService, type TeacherRecord } from "@/services/teachers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { DemoNotice } from "@/components/ui/demo-notice";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +14,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-import { useTeachers } from "@/hooks/useTeachers";
-import { teachersService, type TeacherRecord } from "@/services/teachers";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { StatusPill } from "@/components/ui/status-pill";
 
 type StatusFilter = "TODOS" | "ATIVOS" | "INATIVOS";
 
@@ -31,10 +33,10 @@ function delay(ms: number) {
 function downloadJson(filename: string, contents: string) {
   const blob = new Blob([contents], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
   URL.revokeObjectURL(url);
 }
 
@@ -45,43 +47,31 @@ export function AdminTeachers() {
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const { data: rows, loading, add, reset } = useTeachers();
-  const [refreshing, setRefreshing] = useState(false);
 
   const [draft, setDraft] = useState<{
     name: string;
     email: string;
     department: string;
     active: boolean;
-  }>({ name: "", email: "", department: "Computação", active: true });
+  }>({ name: "", email: "", department: "Computacao", active: true });
 
-  useEffect(() => {
-    if (loading) return;
-    setRefreshing(true);
-    const t = window.setTimeout(() => setRefreshing(false), 350);
-    return () => window.clearTimeout(t);
-  }, [query, status, department, page, loading]);
-
-  const all = rows;
   const departments = useMemo(() => {
-    const s = new Set(all.map((x) => x.department));
-    return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [all]);
+    const values = new Set(rows.map((item) => item.department));
+    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [rows]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return all
-      .filter((t) => {
-        if (status === "ATIVOS" && !t.active) return false;
-        if (status === "INATIVOS" && t.active) return false;
-        if (department !== "TODOS" && t.department !== department) return false;
+    return rows
+      .filter((item) => {
+        if (status === "ATIVOS" && !item.active) return false;
+        if (status === "INATIVOS" && item.active) return false;
+        if (department !== "TODOS" && item.department !== department) return false;
         if (!q) return true;
-        return (
-          t.name.toLowerCase().includes(q) ||
-          t.email.toLowerCase().includes(q)
-        );
+        return item.name.toLowerCase().includes(q) || item.email.toLowerCase().includes(q);
       })
       .sort((a, b) => a.id - b.id);
-  }, [all, query, status, department]);
+  }, [rows, query, status, department]);
 
   const pageSize = 20;
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -96,18 +86,18 @@ export function AdminTeachers() {
     setPage(1);
   }
 
-  function onChangeQuery(v: string) {
-    setQuery(v);
+  function onChangeQuery(value: string) {
+    setQuery(value);
     resetPagination();
   }
 
-  function onChangeStatus(v: StatusFilter) {
-    setStatus(v);
+  function onChangeStatus(value: StatusFilter) {
+    setStatus(value);
     resetPagination();
   }
 
-  function onChangeDepartment(v: string) {
-    setDepartment(v);
+  function onChangeDepartment(value: string) {
+    setDepartment(value);
     resetPagination();
   }
 
@@ -119,7 +109,7 @@ export function AdminTeachers() {
 
     add({
       name,
-      email: email || `prof.${Date.now()}@educonnect.demo`,
+      email: email || `prof.${Date.now()}@educonnect.local`,
       department: dep,
       active: draft.active,
     } satisfies Omit<TeacherRecord, "id">);
@@ -134,21 +124,20 @@ export function AdminTeachers() {
         <div>
           <h1 className="text-2xl font-semibold">Professores</h1>
           <p className="text-sm text-muted-foreground">
-            Gestão de professores em modo demonstração (dados simulados).
+            Gestao de docentes por departamento e status de atividade.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setOpen(true)}>
-            Adicionar (demo)
-          </Button>
+          {!STRICT_API ? (
+            <Button variant="outline" onClick={() => setOpen(true)}>
+              Adicionar
+            </Button>
+          ) : null}
           <Button
             variant="secondary"
             onClick={() =>
-              downloadJson(
-                "educonnect-professores.json",
-                teachersService.exportJson(filtered)
-              )
+              downloadJson("educonnect-professores.json", teachersService.exportJson(filtered))
             }
           >
             Exportar JSON
@@ -167,16 +156,16 @@ export function AdminTeachers() {
             </div>
 
             <div className="text-xs text-muted-foreground md:ml-auto">
-              {loading ? "Carregando…" : refreshing ? "Atualizando…" : ""}
+              {loading ? "Carregando..." : ""}
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="w-full sm:w-72">
-                <Label htmlFor="q" className="sr-only">
+                <Label htmlFor="teacher-q" className="sr-only">
                   Buscar
                 </Label>
                 <Input
-                  id="q"
+                  id="teacher-q"
                   placeholder="Buscar por nome ou email"
                   value={query}
                   onChange={(e) => onChangeQuery(e.target.value)}
@@ -190,15 +179,9 @@ export function AdminTeachers() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onChangeStatus("TODOS")}>
-                    Todos
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onChangeStatus("ATIVOS")}>
-                    Ativos
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onChangeStatus("INATIVOS")}>
-                    Inativos
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangeStatus("TODOS")}>Todos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangeStatus("ATIVOS")}>Ativos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onChangeStatus("INATIVOS")}>Inativos</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -212,9 +195,9 @@ export function AdminTeachers() {
                   <DropdownMenuItem onClick={() => onChangeDepartment("TODOS")}>
                     Todos
                   </DropdownMenuItem>
-                  {departments.map((d) => (
-                    <DropdownMenuItem key={d} onClick={() => onChangeDepartment(d)}>
-                      {d}
+                  {departments.map((item) => (
+                    <DropdownMenuItem key={item} onClick={() => onChangeDepartment(item)}>
+                      {item}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -239,7 +222,7 @@ export function AdminTeachers() {
                 {loading ? (
                   <tr>
                     <td className="px-3 py-10 text-center text-muted-foreground" colSpan={5}>
-                      Carregando professores…
+                      Carregando professores...
                     </td>
                   </tr>
                 ) : pageItems.length === 0 ? (
@@ -249,22 +232,17 @@ export function AdminTeachers() {
                     </td>
                   </tr>
                 ) : (
-                  pageItems.map((t) => (
-                    <tr key={t.id} className="border-t">
-                      <td className="px-3 py-2 text-muted-foreground">{t.id}</td>
-                      <td className="px-3 py-2 font-medium">{t.name}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{t.email}</td>
-                      <td className="px-3 py-2">{t.department}</td>
+                  pageItems.map((item) => (
+                    <tr key={item.id} className="border-t">
+                      <td className="px-3 py-2 text-muted-foreground">{item.id}</td>
+                      <td className="px-3 py-2 font-medium">{item.name}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{item.email}</td>
+                      <td className="px-3 py-2">{item.department}</td>
                       <td className="px-3 py-2">
-                        <span
-                          className={
-                            t.active
-                              ? "rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300"
-                              : "rounded-full bg-zinc-500/10 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:text-zinc-300"
-                          }
-                        >
-                          {t.active ? "Ativo" : "Inativo"}
-                        </span>
+                        <StatusPill
+                          label={item.active ? "Ativo" : "Inativo"}
+                          tone={item.active ? "success" : "neutral"}
+                        />
                       </td>
                     </tr>
                   ))
@@ -274,56 +252,56 @@ export function AdminTeachers() {
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
-              Modo demonstração — dados simulados. Integração com API na próxima etapa.
-            </p>
+            {!STRICT_API ? <DemoNotice className="flex-1" /> : <div className="flex-1" />}
 
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={safePage <= 1}
               >
                 Anterior
               </Button>
               <div className="text-xs text-muted-foreground">
-                Página <span className="font-medium text-foreground">{safePage}</span> de {pageCount}
+                Pagina <span className="font-medium text-foreground">{safePage}</span> de {pageCount}
               </div>
               <Button
                 variant="outline"
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
                 disabled={safePage >= pageCount}
               >
-                Próxima
+                Proxima
               </Button>
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              className="text-muted-foreground"
-              onClick={async () => {
-                setQuery("");
-                setStatus("TODOS");
-                setDepartment("TODOS");
-                setPage(1);
-                await delay(200);
-                await reset();
-              }}
-            >
-              Resetar dados (demo)
-            </Button>
-          </div>
+          {!STRICT_API ? (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={async () => {
+                  setQuery("");
+                  setStatus("TODOS");
+                  setDepartment("TODOS");
+                  setPage(1);
+                  await delay(200);
+                  await reset();
+                }}
+              >
+                Resetar dados locais
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open && !STRICT_API} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar professor (demo)</DialogTitle>
+            <DialogTitle>Adicionar professor</DialogTitle>
             <DialogDescription>
-              Cadastro simplificado para apresentação. Os dados ficam salvos neste navegador.
+              Cadastro simplificado. Os dados ficam salvos neste navegador.
             </DialogDescription>
           </DialogHeader>
 
@@ -333,8 +311,8 @@ export function AdminTeachers() {
               <Input
                 id="name"
                 value={draft.name}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                placeholder="Ex.: Prof. João Pereira"
+                onChange={(e) => setDraft((state) => ({ ...state, name: e.target.value }))}
+                placeholder="Ex.: Prof. Joao Pereira"
               />
             </div>
 
@@ -343,8 +321,8 @@ export function AdminTeachers() {
               <Input
                 id="email"
                 value={draft.email}
-                onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
-                placeholder="Ex.: joao.pereira@educonnect.demo"
+                onChange={(e) => setDraft((state) => ({ ...state, email: e.target.value }))}
+                placeholder="Ex.: joao.pereira@educonnect.local"
               />
             </div>
 
@@ -353,10 +331,8 @@ export function AdminTeachers() {
               <Input
                 id="department"
                 value={draft.department}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, department: e.target.value }))
-                }
-                placeholder="Ex.: Computação"
+                onChange={(e) => setDraft((state) => ({ ...state, department: e.target.value }))}
+                placeholder="Ex.: Computacao"
               />
             </div>
 
@@ -366,7 +342,7 @@ export function AdminTeachers() {
                 type="checkbox"
                 className="h-4 w-4 accent-primary"
                 checked={draft.active}
-                onChange={(e) => setDraft((d) => ({ ...d, active: e.target.checked }))}
+                onChange={(e) => setDraft((state) => ({ ...state, active: e.target.checked }))}
               />
               <Label htmlFor="active">Ativo</Label>
             </div>
