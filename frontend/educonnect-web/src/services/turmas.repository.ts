@@ -1,4 +1,4 @@
-import { DEMO_MODE } from "@/config/env";
+import { API_URL, STRICT_API, USE_DEMO_FALLBACK } from "@/config/env";
 import { classes, teachers } from "@/mocks/db";
 import { api } from "@/services/api";
 
@@ -107,14 +107,26 @@ function mapApiTurma(row: ApiTurma, index: number): TurmaRow {
 export const turmasRepository = {
   async list(): Promise<TurmaRow[]> {
     const fallback = demoTurmas();
-    if (DEMO_MODE) return fallback;
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar turmas em modo estrito");
+      }
+      return fallback;
+    }
 
     try {
       const res = await api.get<ApiTurma[]>("/Turmas");
       const data = Array.isArray(res.data) ? res.data : [];
-      if (data.length === 0) return fallback;
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de turmas em modo estrito");
+        }
+        return fallback;
+      }
       return data.map(mapApiTurma);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return fallback;
     }
   },

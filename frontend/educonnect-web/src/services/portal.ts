@@ -1,4 +1,4 @@
-﻿import { API_URL } from "@/config/env";
+﻿import { API_URL, STRICT_API, USE_DEMO_FALLBACK } from "@/config/env";
 import { calendarService } from "@/services/calendar";
 import { api } from "@/services/api";
 
@@ -71,6 +71,22 @@ type ApiAluno = {
 
   Id?: number;
   UsuarioId?: number;
+};
+
+type ApiMatricula = {
+  id?: number | string;
+  alunoId?: number;
+  turmaId?: number;
+  turmaSemestre?: string;
+  mediaFinal?: number | null;
+  frequencia?: number | null;
+
+  Id?: number | string;
+  AlunoId?: number;
+  TurmaId?: number;
+  TurmaSemestre?: string;
+  MediaFinal?: number | null;
+  Frequencia?: number | null;
 };
 
 function asTrack(raw: unknown): StudentTrack {
@@ -253,6 +269,25 @@ function mapApiEventoToNotification(eventItem: ApiEvento, index: number): Studen
   };
 }
 
+function getCurrentSemesterLabel() {
+  const now = new Date();
+  return `${now.getFullYear()}.${now.getMonth() < 6 ? 1 : 2}`;
+}
+
+function semesterSortValue(value: string) {
+  const normalized = value.trim();
+  const match = normalized.match(/^(\d{4})\.(\d)$/);
+  if (!match) return Number.MIN_SAFE_INTEGER;
+  const year = Number(match[1]);
+  const period = Number(match[2]);
+  return year * 10 + period;
+}
+
+function isNotFoundError(error: unknown) {
+  const status = (error as { response?: { status?: number } } | undefined)?.response?.status;
+  return status === 404;
+}
+
 export const portalService = {
   isApiConfigured() {
     return !!API_URL;
@@ -260,46 +295,149 @@ export const portalService = {
 
   async listCourses(userId?: number | null): Promise<StudentCourseCard[]> {
     const fallback = demoCourses(userId);
-    if (!API_URL) return fallback;
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar cursos em modo estrito");
+      }
+      return fallback;
+    }
 
     try {
       const response = await api.get<ApiCurso[]>("/Cursos");
       const data = Array.isArray(response.data) ? response.data : [];
-      if (data.length === 0) return fallback;
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de cursos em modo estrito");
+        }
+        return fallback;
+      }
       return data.map(mapApiCurso);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return fallback;
     }
   },
 
   async listAnnouncements(): Promise<StudentAnnouncement[]> {
-    return demoAnnouncements();
-  },
-
-  async listNotifications(): Promise<StudentNotification[]> {
-    const fallback = demoNotifications();
-    if (!API_URL) return fallback;
+    const fallback = demoAnnouncements();
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar avisos em modo estrito");
+      }
+      return fallback;
+    }
 
     try {
       const response = await api.get<ApiEvento[]>("/Eventos");
       const data = Array.isArray(response.data) ? response.data : [];
-      if (data.length === 0) return fallback;
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de avisos em modo estrito");
+        }
+        return fallback;
+      }
+
+      return data
+        .slice(0, 6)
+        .map((item, index) => {
+          const createdAt = item.dataEvento ?? item.DataEvento ?? new Date().toISOString();
+          const title = item.titulo ?? item.Titulo ?? `Comunicado ${index + 1}`;
+          const rawCategory = String(item.categoria ?? item.Categoria ?? "Acadêmico").toLowerCase();
+          const category: StudentAnnouncement["category"] = rawCategory.includes("fin")
+            ? "Financeiro"
+            : rawCategory.includes("inst")
+              ? "Institucional"
+              : "Acadêmico";
+
+          return {
+            id: String(item.id ?? item.Id ?? `announcement_${index + 1}`),
+            title,
+            body: `Atualização do portal: ${title}.`,
+            createdAt,
+            author: "Secretaria Acadêmica",
+            category,
+          };
+        })
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (error) {
+      if (STRICT_API) throw error;
+      return fallback;
+    }
+  },
+
+  async listNotifications(): Promise<StudentNotification[]> {
+    const fallback = demoNotifications();
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar notificações em modo estrito");
+      }
+      return fallback;
+    }
+
+    try {
+      const response = await api.get<ApiEvento[]>("/Eventos");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de notificações em modo estrito");
+        }
+        return fallback;
+      }
       return data
         .map(mapApiEventoToNotification)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 10);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return fallback;
     }
   },
 
   async listGrades(courses?: StudentCourseCard[]): Promise<StudentGradeRow[]> {
-    return demoGrades(courses ?? demoCourses());
+    const fallback = demoGrades(courses ?? demoCourses());
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar notas em modo estrito");
+      }
+      return fallback;
+    }
+
+    try {
+      const response = await api.get<ApiMatricula[]>("/Matriculas");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de notas em modo estrito");
+        }
+        return fallback;
+      }
+
+      return data.slice(0, 10).map((item, index) => {
+        const media = item.mediaFinal ?? item.MediaFinal;
+        const grade = typeof media === "number" ? Math.round(media * 10) / 10 : null;
+        const status: StudentGradeRow["status"] = grade == null ? "Pendente" : grade >= 6 ? "Aprovado" : "Em recuperação";
+
+        return {
+          id: String(item.id ?? item.Id ?? `grade_${index + 1}`),
+          courseTitle: `Turma ${item.turmaId ?? item.TurmaId ?? index + 1}`,
+          track: (courses?.[index]?.track ?? "ADS") as StudentTrack,
+          grade,
+          status,
+        };
+      });
+    } catch (error) {
+      if (STRICT_API) throw error;
+      return fallback;
+    }
   },
 
   async downloadBoletimPdf(input: {
     userId: number;
-    semester: string;
+    semester?: string;
   }): Promise<{ bytes: ArrayBuffer; filename: string }> {
     if (!API_URL) {
       throw new Error("API_URL não configurada");
@@ -308,20 +446,55 @@ export const portalService = {
     const studentsResponse = await api.get<ApiAluno[]>("/Alunos");
     const studentsData = Array.isArray(studentsResponse.data) ? studentsResponse.data : [];
 
-    const student = studentsData.find((item) => (item.usuarioId ?? item.UsuarioId) === input.userId);
+    const student =
+      studentsData.find((item) => (item.usuarioId ?? item.UsuarioId) === input.userId) ??
+      studentsData.find((item) => (item.id ?? item.Id) === input.userId);
+
     const alunoId = student?.id ?? student?.Id;
     if (!alunoId) {
       throw new Error("Não foi possível localizar o aluno vinculado a este usuário.");
     }
 
-    const semester = encodeURIComponent(input.semester);
-    const url = `/boletins/alunos/${alunoId}/semestres/${semester}/pdf`;
-    const pdfResponse = await api.get<ArrayBuffer>(url, { responseType: "arraybuffer" });
+    const matriculasResponse = await api.get<ApiMatricula[]>("/Matriculas");
+    const matriculasData = Array.isArray(matriculasResponse.data) ? matriculasResponse.data : [];
 
-    return {
-      bytes: pdfResponse.data,
-      filename: `boletim_${input.semester}.pdf`,
-    };
+    const semesterCandidates = Array.from(
+      new Set(
+        [
+          input.semester?.trim(),
+          ...matriculasData
+            .filter((item) => (item.alunoId ?? item.AlunoId) === alunoId)
+            .map((item) => (item.turmaSemestre ?? item.TurmaSemestre ?? "").trim())
+            .filter((value) => value.length > 0)
+            .sort((a, b) => semesterSortValue(b) - semesterSortValue(a)),
+          getCurrentSemesterLabel(),
+        ].filter((value): value is string => !!value)
+      )
+    );
+
+    let lastError: unknown = null;
+    for (const semesterCandidate of semesterCandidates) {
+      try {
+        const semester = encodeURIComponent(semesterCandidate);
+        const url = `/boletins/alunos/${alunoId}/semestres/${semester}/pdf`;
+        const pdfResponse = await api.get<ArrayBuffer>(url, { responseType: "arraybuffer" });
+        return {
+          bytes: pdfResponse.data,
+          filename: `boletim_${semesterCandidate}.pdf`,
+        };
+      } catch (error) {
+        lastError = error;
+        if (!isNotFoundError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
+
+    throw new Error("Não foi possível localizar boletim para os semestres disponíveis do aluno.");
   },
 
   listUpcomingFromCalendar(input: { role: "ADMIN" | "PROFESSOR" | "ALUNO"; userId?: number | null; limit?: number }) {
@@ -333,5 +506,53 @@ export const portalService = {
       .sort((a, b) => a.start.getTime() - b.start.getTime())
       .filter((item) => item.end.getTime() >= from.getTime())
       .slice(0, limit);
+  },
+
+  async listUpcomingEvents(input: {
+    role: "ADMIN" | "PROFESSOR" | "ALUNO";
+    userId?: number | null;
+    limit?: number;
+  }) {
+    const fallback = this.listUpcomingFromCalendar(input);
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar próximos eventos em modo estrito");
+      }
+      return fallback;
+    }
+
+    try {
+      const response = await api.get<ApiEvento[]>("/Eventos");
+      const data = Array.isArray(response.data) ? response.data : [];
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de próximos eventos em modo estrito");
+        }
+        return fallback;
+      }
+
+      const from = new Date();
+      const limit = input.limit ?? 6;
+
+      return data
+        .map((item, index) => {
+          const start = new Date(item.dataEvento ?? item.DataEvento ?? new Date().toISOString());
+          return {
+            id: `api_${item.id ?? item.Id ?? index + 1}`,
+            title: item.titulo ?? item.Titulo ?? "Evento",
+            start,
+            end: new Date(start.getTime() + 60 * 60 * 1000),
+            createdByRole: "API" as const,
+            scope: "INSTITUCIONAL" as const,
+          };
+        })
+        .sort((a, b) => a.start.getTime() - b.start.getTime())
+        .filter((item) => item.end.getTime() >= from.getTime())
+        .slice(0, limit);
+    } catch (error) {
+      if (STRICT_API) throw error;
+      return fallback;
+    }
   },
 };

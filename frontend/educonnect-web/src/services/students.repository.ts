@@ -1,4 +1,4 @@
-import { DEMO_MODE } from "@/config/env";
+import { API_URL, STRICT_API, USE_DEMO_FALLBACK } from "@/config/env";
 import { api } from "@/services/api";
 import { studentsService, type StudentRecord } from "@/services/students";
 
@@ -44,14 +44,26 @@ function mapApiAluno(input: ApiAluno): StudentRecord {
 
 export const studentsRepository = {
   async list(): Promise<StudentRecord[]> {
-    if (DEMO_MODE) return studentsService.list();
+    if (USE_DEMO_FALLBACK) return studentsService.list();
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar alunos em modo estrito");
+      }
+      return studentsService.list();
+    }
 
     try {
       const response = await api.get<ApiAluno[]>("/Alunos");
       const data = Array.isArray(response.data) ? response.data : [];
-      if (data.length === 0) return studentsService.list();
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de alunos em modo estrito");
+        }
+        return studentsService.list();
+      }
       return data.map(mapApiAluno);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return studentsService.list();
     }
   },

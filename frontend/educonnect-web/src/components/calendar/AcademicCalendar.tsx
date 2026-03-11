@@ -171,13 +171,13 @@ export function AcademicCalendar({ role, mode, compact = false }: AcademicCalend
     setOpen(true);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!draft) return;
     const title = draft.title.trim();
     if (!title) return;
 
     if (draft.mode === "create") {
-      create({
+      await create({
         title,
         start: draft.start,
         end: draft.end,
@@ -186,7 +186,7 @@ export function AcademicCalendar({ role, mode, compact = false }: AcademicCalend
         scope: draft.scope,
       });
     } else if (draft.id) {
-      update(draft.id, {
+      await update(draft.id, {
         title,
         start: draft.start,
         end: draft.end,
@@ -197,9 +197,9 @@ export function AcademicCalendar({ role, mode, compact = false }: AcademicCalend
     setDraft(null);
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!draft?.id) return;
-    remove(draft.id);
+    await remove(draft.id);
     setOpen(false);
     setDraft(null);
   }
@@ -363,7 +363,7 @@ export function AcademicCalendar({ role, mode, compact = false }: AcademicCalend
           <DialogFooter className="gap-2 sm:gap-0">
             <div className="flex w-full items-center justify-between">
               {draft?.mode === "edit" ? (
-                <Button variant="destructive" onClick={handleDelete}>
+                <Button variant="destructive" onClick={() => void handleDelete()}>
                   Excluir
                 </Button>
               ) : (
@@ -374,7 +374,7 @@ export function AcademicCalendar({ role, mode, compact = false }: AcademicCalend
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleSave} disabled={!draft?.title.trim()}>
+                <Button onClick={() => void handleSave()} disabled={!draft?.title.trim()}>
                   {draft?.mode === "edit" ? "Salvar" : "Criar"}
                 </Button>
               </div>

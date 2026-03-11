@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { API_URL } from "@/config/env";
+import { API_URL, STRICT_API } from "@/config/env";
 import { authService } from "@/services/auth";
 
 const schema = z.object({
@@ -45,7 +45,7 @@ export function LoginPage() {
     const role = value.includes("admin") ? "ADMIN" : value.includes("prof") ? "PROFESSOR" : "ALUNO";
     const userHash = Array.from(value).reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const demoUserId = role === "ADMIN" ? 1 : role === "PROFESSOR" ? 200 + (userHash % 50) : 1000 + (userHash % 200);
-    login("mock-token", role, demoUserId, "Modo demonstração");
+    login("mock-token", role, demoUserId, "Acesso local");
     goToHomeByRole(role);
   };
 
@@ -55,6 +55,10 @@ export function LoginPage() {
     setCanUseDemoFallback(false);
 
     try {
+      if (STRICT_API && !preferApi) {
+        throw new Error("API_URL não configurada para modo estrito");
+      }
+
       if (!preferApi) {
         demoLogin(data.email);
         return;
@@ -65,11 +69,13 @@ export function LoginPage() {
       goToHomeByRole(response.role);
     } catch {
       setSubmitError(
-        API_URL
-          ? "Não foi possível autenticar na API. Verifique o backend e tente novamente."
-          : "Modo demonstração indisponível."
+        STRICT_API
+          ? "Não foi possível autenticar na API em modo estrito. Verifique backend, token e VITE_API_URL."
+          : API_URL
+            ? "Não foi possível autenticar na API. Verifique o backend e tente novamente."
+            : "Acesso local indisponível."
       );
-      setCanUseDemoFallback(true);
+      setCanUseDemoFallback(!STRICT_API);
     } finally {
       setSubmitting(false);
     }
@@ -112,20 +118,24 @@ export function LoginPage() {
               <p className="text-sm text-destructive">{submitError}</p>
               {canUseDemoFallback ? (
                 <Button type="button" variant="outline" onClick={() => demoLogin(form.getValues("email"))}>
-                  Entrar em modo demonstração
+                  Entrar com acesso local
                 </Button>
               ) : null}
             </div>
           ) : null}
 
           <p className="text-xs text-muted-foreground">
-            {preferApi ? (
+            {STRICT_API ? (
+              <>
+                Modo API estrito ativo: autenticação somente via backend.
+              </>
+            ) : preferApi ? (
               <>
                 Conectado à API: <b>{API_URL}</b>
               </>
             ) : (
               <>
-                Dica para demo: e-mail com <b>admin</b> ou <b>prof</b> altera o perfil.
+                Dica: e-mail com <b>admin</b> ou <b>prof</b> altera o perfil local.
               </>
             )}
           </p>

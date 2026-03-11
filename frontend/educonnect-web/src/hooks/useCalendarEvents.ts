@@ -64,10 +64,10 @@ export function useCalendarEvents(role: UserRole, userId?: number | null) {
   }, [load]);
 
   const create = useCallback(
-    (input: Omit<CalendarEvent, "id">): CalendarEvent | null => {
+    async (input: Omit<CalendarEvent, "id">): Promise<CalendarEvent | null> => {
       if (!canMutateRole(role)) return null;
 
-      const created = calendarService.create(input, context);
+      const created = await eventsRepository.create(input, context);
       setData((prev) => [...prev, created].sort((a, b) => a.start.getTime() - b.start.getTime()));
       return created;
     },
@@ -75,11 +75,11 @@ export function useCalendarEvents(role: UserRole, userId?: number | null) {
   );
 
   const update = useCallback(
-    (id: string, patch: Partial<Omit<CalendarEvent, "id">>) => {
+    async (id: string, patch: Partial<Omit<CalendarEvent, "id">>) => {
       const target = data.find((item) => item.id === id);
       if (!target || !canEditEvent(role, target)) return null;
 
-      const updated = calendarService.update(id, patch, context);
+      const updated = await eventsRepository.update(id, target, patch, context);
       if (!updated) return null;
 
       setData((prev) => {
@@ -94,11 +94,12 @@ export function useCalendarEvents(role: UserRole, userId?: number | null) {
   );
 
   const remove = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const target = data.find((item) => item.id === id);
       if (!target || !canEditEvent(role, target)) return false;
 
-      calendarService.remove(id, context);
+      const removed = await eventsRepository.remove(id, context);
+      if (!removed) return false;
       setData((prev) => prev.filter((eventItem) => eventItem.id !== id));
       return true;
     },

@@ -1,4 +1,4 @@
-import { DEMO_MODE } from "@/config/env";
+import { API_URL, STRICT_API, USE_DEMO_FALLBACK } from "@/config/env";
 import { classes, enrollments, students } from "@/mocks/db";
 import { api } from "@/services/api";
 
@@ -71,14 +71,26 @@ function mapApiMatricula(row: ApiMatricula, index: number): MatriculaRow {
 export const matriculasRepository = {
   async list(): Promise<MatriculaRow[]> {
     const fallback = demoMatriculas();
-    if (DEMO_MODE) return fallback;
+    if (USE_DEMO_FALLBACK) return fallback;
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar matrículas em modo estrito");
+      }
+      return fallback;
+    }
 
     try {
       const res = await api.get<ApiMatricula[]>("/Matriculas");
       const data = Array.isArray(res.data) ? res.data : [];
-      if (data.length === 0) return fallback;
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de matrículas em modo estrito");
+        }
+        return fallback;
+      }
       return data.map(mapApiMatricula);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return fallback;
     }
   },

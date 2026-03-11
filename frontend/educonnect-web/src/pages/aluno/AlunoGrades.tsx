@@ -28,7 +28,6 @@ export function AlunoGrades() {
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
-  const CURRENT_SEMESTER = "2026.1";
 
   const summary = useMemo(() => {
     const released = grades.filter((row) => row.grade != null);
@@ -68,10 +67,7 @@ export function AlunoGrades() {
 
               setDownloadingPdf(true);
               try {
-                const { bytes, filename } = await portalService.downloadBoletimPdf({
-                  userId,
-                  semester: CURRENT_SEMESTER,
-                });
+                const { bytes, filename } = await portalService.downloadBoletimPdf({ userId });
 
                 const blob = new Blob([bytes], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
@@ -80,15 +76,15 @@ export function AlunoGrades() {
                 anchor.download = filename;
                 anchor.click();
                 URL.revokeObjectURL(url);
-              } catch {
-                setPdfError("Nao foi possivel baixar o boletim em PDF.");
+              } catch (error) {
+                setPdfError(error instanceof Error ? error.message : "Nao foi possivel baixar o boletim em PDF.");
               } finally {
                 setDownloadingPdf(false);
               }
             }}
             disabled={downloadingPdf}
           >
-            {downloadingPdf ? "Baixando..." : `Baixar boletim (PDF ${CURRENT_SEMESTER})`}
+            {downloadingPdf ? "Baixando..." : "Baixar boletim (PDF)"}
           </Button>
           <Button
             variant="outline"

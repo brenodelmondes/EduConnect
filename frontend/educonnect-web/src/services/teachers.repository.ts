@@ -1,4 +1,4 @@
-import { DEMO_MODE } from "@/config/env";
+import { API_URL, STRICT_API, USE_DEMO_FALLBACK } from "@/config/env";
 import { api } from "@/services/api";
 import { teachersService, type TeacherRecord } from "@/services/teachers";
 
@@ -37,14 +37,26 @@ function mapApiProfessor(input: ApiProfessor): TeacherRecord {
 
 export const teachersRepository = {
   async list(): Promise<TeacherRecord[]> {
-    if (DEMO_MODE) return teachersService.list();
+    if (USE_DEMO_FALLBACK) return teachersService.list();
+    if (!API_URL) {
+      if (STRICT_API) {
+        throw new Error("API_URL não configurada para listar professores em modo estrito");
+      }
+      return teachersService.list();
+    }
 
     try {
       const response = await api.get<ApiProfessor[]>("/Professor");
       const data = Array.isArray(response.data) ? response.data : [];
-      if (data.length === 0) return teachersService.list();
+      if (data.length === 0) {
+        if (STRICT_API) {
+          throw new Error("API retornou lista vazia de professores em modo estrito");
+        }
+        return teachersService.list();
+      }
       return data.map(mapApiProfessor);
-    } catch {
+    } catch (error) {
+      if (STRICT_API) throw error;
       return teachersService.list();
     }
   },

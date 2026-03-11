@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useStudents } from "@/hooks/useStudents";
+import { STRICT_API } from "@/config/env";
 import { type StudentRecord } from "@/services/students";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,7 +114,7 @@ export function AdminStudents() {
 
     add({
       name,
-      email: email || `aluno.${Date.now()}@educonnect.demo`,
+      email: email || `aluno.${Date.now()}@educonnect.local`,
       course: courseName,
       active: draft.active,
       enrolledAt: `${yyyy}-${mm}-${dd}`,
@@ -134,9 +135,11 @@ export function AdminStudents() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setOpen(true)}>
-            Adicionar (demo)
-          </Button>
+          {!STRICT_API ? (
+            <Button variant="outline" onClick={() => setOpen(true)}>
+              Adicionar
+            </Button>
+          ) : null}
           <Button
             variant="secondary"
             onClick={() =>
@@ -253,7 +256,7 @@ export function AdminStudents() {
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <DemoNotice className="flex-1" />
+            {!STRICT_API ? <DemoNotice className="flex-1" /> : <div className="flex-1" />}
 
             <div className="flex items-center gap-2">
               <Button
@@ -276,31 +279,33 @@ export function AdminStudents() {
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              className="text-muted-foreground"
-              onClick={async () => {
-                setQuery("");
-                setStatus("TODOS");
-                setCourse("TODOS");
-                setPage(1);
-                await delay(200);
-                await reset();
-              }}
-            >
-              Resetar dados (demo)
-            </Button>
-          </div>
+          {!STRICT_API ? (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={async () => {
+                  setQuery("");
+                  setStatus("TODOS");
+                  setCourse("TODOS");
+                  setPage(1);
+                  await delay(200);
+                  await reset();
+                }}
+              >
+                Resetar dados locais
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open && !STRICT_API} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar aluno (demo)</DialogTitle>
+            <DialogTitle>Adicionar aluno</DialogTitle>
             <DialogDescription>
-              Cadastro simplificado para apresentacao. Os dados ficam salvos neste navegador.
+              Cadastro simplificado. Os dados ficam salvos neste navegador.
             </DialogDescription>
           </DialogHeader>
 
@@ -321,7 +326,7 @@ export function AdminStudents() {
                 id="email"
                 value={draft.email}
                 onChange={(e) => setDraft((state) => ({ ...state, email: e.target.value }))}
-                placeholder="Ex.: maria.silva@educonnect.demo"
+                placeholder="Ex.: maria.silva@educonnect.local"
               />
             </div>
 

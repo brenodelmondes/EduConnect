@@ -30,7 +30,7 @@ export function ProfessorServices() {
       {sent ? (
         <Card className="border-dashed">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            Chamado registrado com sucesso no modo demonstração.
+            Chamado registrado com sucesso.
           </CardContent>
         </Card>
       ) : null}

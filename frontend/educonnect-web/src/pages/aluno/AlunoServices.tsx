@@ -32,7 +32,7 @@ export function AlunoServices() {
       {sent ? (
         <Card className="border-dashed">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            Chamado registrado (modo demonstracao). Voce recebera atualizacoes por e-mail.
+            Chamado registrado com sucesso. Voce recebera atualizacoes por e-mail.
           </CardContent>
         </Card>
       ) : null}
@@ -94,7 +94,7 @@ export function AlunoServices() {
             </Button>
           </div>
 
-          <DemoNotice text="Modo demonstracao: envio e acompanhamento serao integrados com API na proxima etapa." />
+          <DemoNotice text="Envio e acompanhamento variam conforme a disponibilidade dos serviços no ambiente." />
         </CardContent>
       </Card>
     </div>

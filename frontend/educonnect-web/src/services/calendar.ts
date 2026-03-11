@@ -1,4 +1,4 @@
-﻿import { DEMO_MODE } from "@/config/env";
+﻿import { DEMO_MODE, STRICT_API } from "@/config/env";
 import type { CalendarEvent } from "@/types/academic";
 import type { UserRole } from "@/utils/storage";
 
@@ -176,6 +176,7 @@ function canAccessPersonal(context: CalendarContext) {
 
 export const calendarService = {
   list(context: CalendarContext): CalendarEvent[] {
+    if (STRICT_API) return [];
     if (!canUseStorage()) return DEMO_MODE ? seedGlobalEvents() : [];
 
     const globalEvents = listGlobalEvents();
@@ -188,6 +189,10 @@ export const calendarService = {
   },
 
   create(input: Omit<CalendarEvent, "id">, context: CalendarContext): CalendarEvent {
+    if (STRICT_API) {
+      throw new Error("Calendário local desativado em modo API estrito");
+    }
+
     const created: CalendarEvent = { ...input, id: newId() };
 
     if (!canUseStorage()) return created;
@@ -208,6 +213,10 @@ export const calendarService = {
     patch: Partial<Omit<CalendarEvent, "id">>,
     context: CalendarContext
   ): CalendarEvent | null {
+    if (STRICT_API) {
+      throw new Error("Atualização local de calendário desativada em modo API estrito");
+    }
+
     if (!canUseStorage()) return null;
 
     if (canAccessPersonal(context)) {
@@ -235,6 +244,10 @@ export const calendarService = {
   },
 
   remove(id: string, context: CalendarContext) {
+    if (STRICT_API) {
+      throw new Error("Remoção local de calendário desativada em modo API estrito");
+    }
+
     if (!canUseStorage()) return;
 
     if (canAccessPersonal(context)) {
@@ -255,6 +268,7 @@ export const calendarService = {
   },
 
   resetToMock(context: CalendarContext) {
+    if (STRICT_API) return;
     if (!canUseStorage()) return;
 
     if (canAccessPersonal(context)) {

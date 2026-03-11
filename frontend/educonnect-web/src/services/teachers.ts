@@ -24,7 +24,7 @@ function safeParse<T>(raw: string | null): T | null {
 function seedToRecord(t: SeedTeacher): TeacherRecord {
   return {
     ...t,
-    email: `prof.${t.id}@educonnect.demo`,
+    email: `prof.${t.id}@educonnect.local`,
   };
 }
 

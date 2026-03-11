@@ -4,7 +4,7 @@
 };
 
 const DEFAULT_TEXT =
-  "Dados simulados (modo demonstração). Integração com API na próxima etapa.";
+  "Aviso informativo: este conteúdo pode variar conforme os dados disponíveis no ambiente.";
 
 export function DemoNotice({ text = DEFAULT_TEXT, className = "" }: DemoNoticeProps) {
   return (

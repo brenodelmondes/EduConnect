@@ -22,7 +22,7 @@ type StudentPortalState = {
   announcements: StudentAnnouncement[];
   notifications: StudentNotification[];
   grades: StudentGradeRow[];
-  upcoming: ReturnType<typeof portalService.listUpcomingFromCalendar>;
+  upcoming: Awaited<ReturnType<typeof portalService.listUpcomingEvents>>;
   loading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -42,13 +42,9 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
   const [announcements, setAnnouncements] = useState<StudentAnnouncement[]>([]);
   const [notifications, setNotifications] = useState<StudentNotification[]>([]);
   const [grades, setGrades] = useState<StudentGradeRow[]>([]);
+  const [upcoming, setUpcoming] = useState<Awaited<ReturnType<typeof portalService.listUpcomingEvents>>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const upcoming = useMemo(
-    () => portalService.listUpcomingFromCalendar({ role: "ALUNO", userId, limit: 6 }),
-    [userId]
-  );
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -56,10 +52,11 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
 
     try {
       await delay(300);
-      const [courseRows, announcementRows, notificationRows] = await Promise.all([
+      const [courseRows, announcementRows, notificationRows, upcomingRows] = await Promise.all([
         portalService.listCourses(userId),
         portalService.listAnnouncements(),
         portalService.listNotifications(),
+        portalService.listUpcomingEvents({ role: "ALUNO", userId, limit: 6 }),
       ]);
       const gradeRows = await portalService.listGrades(courseRows);
 
@@ -68,6 +65,7 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
         setAnnouncements(announcementRows);
         setNotifications(notificationRows);
         setGrades(gradeRows);
+        setUpcoming(upcomingRows);
       }
     } catch {
       if (mounted.current) {
@@ -76,6 +74,7 @@ export function StudentPortalProvider({ children }: { children: React.ReactNode 
         setAnnouncements([]);
         setNotifications([]);
         setGrades([]);
+        setUpcoming([]);
       }
     } finally {
       if (mounted.current) {

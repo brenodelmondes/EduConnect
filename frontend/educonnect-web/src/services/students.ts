@@ -24,7 +24,7 @@ function safeParse<T>(raw: string | null): T | null {
 function seedToRecord(s: SeedStudent): StudentRecord {
   return {
     ...s,
-    email: `aluno.${s.id}@educonnect.demo`,
+    email: `aluno.${s.id}@educonnect.local`,
   };
 }
 
@@ -61,7 +61,7 @@ export const studentsService = {
     const created: StudentRecord = { ...input, id: nextId(all) };
 
     // Persiste apenas o conjunto completo (MVP). Como o seed é grande, isso pode crescer.
-    // Para demo, o custo é aceitável; em produção, isso viraria API.
+    // Neste fluxo local, o custo é aceitável; em produção, isso viraria API.
     writeAll([...all, created]);
     return created;
   },
