@@ -8,6 +8,8 @@ type ApiProfessor = {
   usuarioEmail?: string;
   departamentoNome?: string;
   active?: boolean;
+  usuario?: { nome?: string; email?: string };
+  departamento?: { nome?: string };
 
   Id?: number;
   UsuarioNome?: string;
@@ -17,10 +19,22 @@ type ApiProfessor = {
 };
 
 function mapApiProfessor(input: ApiProfessor): TeacherRecord {
-  const id = input.id ?? input.Id;
-  const name = input.usuarioNome ?? input.UsuarioNome;
-  const email = input.usuarioEmail ?? input.UsuarioEmail;
-  const department = input.departamentoNome ?? input.DepartamentoNome;
+  const id = input.id ?? input.Id ?? 0;
+  const name =
+    input.usuarioNome ??
+    input.UsuarioNome ??
+    input.usuario?.nome ??
+    (id ? `Professor ${id}` : undefined);
+  const email =
+    input.usuarioEmail ??
+    input.UsuarioEmail ??
+    input.usuario?.email ??
+    (id ? `prof.${id}@educonnect.com` : undefined);
+  const department =
+    input.departamentoNome ??
+    input.DepartamentoNome ??
+    input.departamento?.nome ??
+    "Departamento";
 
   if (!id || !name || !email || !department) {
     throw new Error("API retornou professor em formato inesperado");
@@ -49,15 +63,12 @@ export const teachersRepository = {
       const response = await api.get<ApiProfessor[]>("/Professor");
       const data = Array.isArray(response.data) ? response.data : [];
       if (data.length === 0) {
-        if (STRICT_API) {
-          throw new Error("API retornou lista vazia de professores em modo estrito");
-        }
-        return teachersService.list();
+        return [];
       }
       return data.map(mapApiProfessor);
     } catch (error) {
-      if (STRICT_API) throw error;
-      return teachersService.list();
+      if (USE_DEMO_FALLBACK) return teachersService.list();
+      throw error;
     }
   },
 };

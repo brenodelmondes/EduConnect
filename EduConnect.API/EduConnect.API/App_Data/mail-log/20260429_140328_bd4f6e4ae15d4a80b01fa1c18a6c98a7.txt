@@ -1,0 +1,24 @@
+EduConnect - Log de E-mail de Primeiro Acesso
+Data UTC: 2026-04-29T14:03:28.0515230Z
+Protocolo: bd4f6e4ae15d4a80b01fa1c18a6c98a7
+Status inscrição: APROVADA
+Nome: Breno Delmondes
+E-mail destino: bdelmondes1@yahoo.com
+Curso: CCO
+Turma: STRING
+Observação: SMTP não configurado. E-mail salvo em log para demonstração.
+
+--- Corpo do e-mail ---
+Olá, Breno Delmondes.
+
+Sua inscrição foi aprovada no EduConnect.
+Curso: CCO
+Turma: STRING
+
+Credenciais de primeiro acesso:
+Login: bdelmondes1@yahoo.com
+Senha provisória: Edu@249c30c3
+
+Acesse: http://localhost:5173/login
+No primeiro login, altere sua senha por segurança.
+

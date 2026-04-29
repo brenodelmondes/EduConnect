@@ -21,6 +21,8 @@ type ApiMatricula = {
   status?: string;
   createdAt?: string;
   dataCriacao?: string;
+  alunoRa?: string;
+  turmaSemestre?: string;
 
   Id?: number | string;
   AlunoNome?: string;
@@ -29,6 +31,8 @@ type ApiMatricula = {
   Status?: string;
   CreatedAt?: string;
   DataCriacao?: string;
+  AlunoRa?: string;
+  TurmaSemestre?: string;
 };
 
 function normalizeStatus(raw: unknown): MatriculaStatus {
@@ -60,9 +64,9 @@ function mapApiMatricula(row: ApiMatricula, index: number): MatriculaRow {
 
   return {
     id: String(id),
-    aluno: String(row.alunoNome ?? row.AlunoNome ?? `Aluno ${index + 1}`),
+    aluno: String(row.alunoNome ?? row.AlunoNome ?? row.alunoRa ?? row.AlunoRa ?? `Aluno ${index + 1}`),
     curso: String(row.cursoNome ?? row.CursoNome ?? "Curso"),
-    turma: String(row.turmaNome ?? row.TurmaNome ?? `T-${String(index + 1).padStart(3, "0")}`),
+    turma: String(row.turmaNome ?? row.TurmaNome ?? row.turmaSemestre ?? row.TurmaSemestre ?? `T-${String(index + 1).padStart(3, "0")}`),
     status: normalizeStatus(row.status ?? row.Status),
     dataSolicitacao: createdAt,
   };
@@ -83,15 +87,12 @@ export const matriculasRepository = {
       const res = await api.get<ApiMatricula[]>("/Matriculas");
       const data = Array.isArray(res.data) ? res.data : [];
       if (data.length === 0) {
-        if (STRICT_API) {
-          throw new Error("API retornou lista vazia de matrículas em modo estrito");
-        }
-        return fallback;
+        return [];
       }
       return data.map(mapApiMatricula);
     } catch (error) {
-      if (STRICT_API) throw error;
-      return fallback;
+      if (USE_DEMO_FALLBACK) return fallback;
+      throw error;
     }
   },
 };

@@ -30,7 +30,9 @@ namespace EduConnect.API.Shared.Repository
         {
             return _context.Turmas
                 .Include(t => t.Materia)
+                    .ThenInclude(m => m.Curso)
                 .Include(t => t.Professor)
+                    .ThenInclude(p => p.Usuario)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
@@ -39,7 +41,9 @@ namespace EduConnect.API.Shared.Repository
         {
             return await _context.Turmas
                 .Include(t => t.Materia)
+                    .ThenInclude(m => m.Curso)
                 .Include(t => t.Professor)
+                    .ThenInclude(p => p.Usuario)
                 .AsNoTracking()
                 .ToListAsync();
         }

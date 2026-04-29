@@ -1,5 +1,4 @@
 ﻿import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
 
 import { BrandMark } from "@/components/brand/BrandMark";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { STRICT_API } from "@/config/env";
 import { inscricaoService } from "@/services/inscricao";
+import qrCodeImage from "@/assets/qrcodeEdu.png";
 
 type FormState = {
   fullName: string;
@@ -36,8 +36,17 @@ export function InscricaoPage() {
   const [stage, setStage] = useState<EnrollmentStage>("FORM");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ status: string; correlationId: string } | null>(null);
+  const [result, setResult] = useState<{
+    status: string;
+    correlationId: string;
+    firstAccessReleased?: boolean;
+    emailSent?: boolean;
+    temporaryLogin?: string;
+    temporaryPassword?: string;
+    message?: string;
+  } | null>(null);
   const [emailResendMessage, setEmailResendMessage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [form, setForm] = useState<FormState>(initialState);
 
   const canSubmit =
@@ -76,23 +85,6 @@ export function InscricaoPage() {
     }
   }
 
-  async function confirmPayment() {
-    if (!result) return;
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const status = await inscricaoService.getStatus(result.correlationId);
-      setResult(status);
-      setStage("DONE");
-    } catch {
-      setError("Não foi possível confirmar o status da inscrição agora.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   async function resendEmail() {
     if (!result) return;
 
@@ -110,24 +102,25 @@ export function InscricaoPage() {
       setSubmitting(false);
     }
   }
-
-  const qrPayload = result
-    ? JSON.stringify({
-        tipo: "INSCRICAO_EDUCONNECT",
-        protocolo: result.correlationId,
-        nome: form.fullName.trim(),
-        curso: form.course,
-      })
-    : "";
-
   const courseName = courseLabel(form.course);
 
   const stepBadgeClass = "inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold";
 
   const stepNumberClass = (value: EnrollmentStage) =>
-    value === stage || (value === "FORM" && (stage === "PAYMENT" || stage === "DONE")) || (value === "PAYMENT" && stage === "DONE")
+    value === stage || (value === "FORM" && stage !== "FORM") || (value === "PAYMENT" && stage === "DONE")
       ? `${stepBadgeClass} bg-primary text-primary-foreground border-primary`
       : `${stepBadgeClass} bg-muted text-muted-foreground`;
+
+  function confirmPayment() {
+    setStage("DONE");
+  }
+
+  function copyPixCode(code: string) {
+    if (!navigator?.clipboard) return;
+    void navigator.clipboard.writeText(code);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  }
 
   if (stage === "DONE" && result) {
     return (
@@ -135,8 +128,8 @@ export function InscricaoPage() {
         <CardHeader className="space-y-3">
           <BrandMark />
           <div>
-            <CardTitle>Inscrição concluída</CardTitle>
-            <CardDescription>Cadastro finalizado com sucesso. Guarde o protocolo para acompanhamento.</CardDescription>
+            <CardTitle>Pré-inscrição recebida</CardTitle>
+            <CardDescription>Sua solicitação foi registrada e está pendente de análise administrativa.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -147,8 +140,18 @@ export function InscricaoPage() {
             <p className="text-muted-foreground">Curso: {courseName}</p>
             <p className="text-muted-foreground">Status: {result.status}</p>
             <p className="text-muted-foreground">Correlation ID: {result.correlationId}</p>
+            <p className="text-muted-foreground">
+              Primeiro acesso liberado: {result.firstAccessReleased ? "Sim" : "Não"}
+            </p>
+            {result.temporaryLogin ? (
+              <p className="text-muted-foreground">Login provisório: {result.temporaryLogin}</p>
+            ) : null}
+            {result.temporaryPassword ? (
+              <p className="text-muted-foreground">Senha provisória: {result.temporaryPassword}</p>
+            ) : null}
           </div>
 
+          {result.message ? <p className="text-sm text-muted-foreground">{result.message}</p> : null}
           {emailResendMessage ? <p className="text-sm text-muted-foreground">{emailResendMessage}</p> : null}
 
           <div className="flex flex-wrap justify-end gap-2">
@@ -164,13 +167,103 @@ export function InscricaoPage() {
     );
   }
 
+  if (stage === "PAYMENT" && result) {
+    return (
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="space-y-3">
+          <BrandMark />
+          <div>
+            <CardTitle>Etapa de pagamento</CardTitle>
+            <CardDescription>
+              Confirme a etapa financeira para concluir a jornada de inscricao.
+            </CardDescription>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+            <span className={stepNumberClass("FORM")}>1</span>
+            <span>Dados</span>
+            <span>•</span>
+            <span className={stepNumberClass("PAYMENT")}>2</span>
+            <span>Pagamento</span>
+            <span>•</span>
+            <span className={stepNumberClass("DONE")}>3</span>
+            <span>Conclusao</span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-md border bg-muted/20 p-4 text-sm">
+            <p className="font-medium">Resumo da inscricao</p>
+            <p className="mt-1 text-muted-foreground">Nome: {form.fullName}</p>
+            <p className="text-muted-foreground">E-mail: {form.email}</p>
+            <p className="text-muted-foreground">Curso: {courseName}</p>
+            <p className="text-muted-foreground">Protocolo: {result.correlationId}</p>
+            <p className="text-muted-foreground">Status: {result.status}</p>
+          </div>
+
+          <div className="grid gap-4 rounded-md border p-4 text-sm md:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <p className="font-medium">Pagamento institucional</p>
+              <p className="mt-1 text-muted-foreground">
+                Valor estimado: R$ 1.250,00
+              </p>
+              <p className="text-muted-foreground">
+                Metodo: PIX (QR Code) / Cartao / Boleto
+              </p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Use o QR Code ao lado para registrar o pagamento da inscricao.
+              </p>
+              <div className="mt-3 rounded-md border bg-muted/30 p-3 text-xs">
+                <p className="font-medium text-foreground">Codigo PIX</p>
+                <p className="mt-1 break-all text-muted-foreground">
+                  00020101021226850014br.gov.bcb.pix2563educonnect.pagamento/inscricao/{result.correlationId}520400005303986540512.505802BR5920EDUCONNECT SERVICOS6009SAO PAULO62070503***6304A1B2
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() =>
+                    copyPixCode(
+                      `00020101021226850014br.gov.bcb.pix2563educonnect.pagamento/inscricao/${result.correlationId}520400005303986540512.505802BR5920EDUCONNECT SERVICOS6009SAO PAULO62070503***6304A1B2`
+                    )
+                  }
+                >
+                  Copiar codigo PIX
+                </Button>
+                {copied ? (
+                  <p className="mt-2 text-xs text-foreground">Codigo copiado.</p>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex items-center justify-center rounded-md border bg-muted/30 p-3">
+              <img
+                src={qrCodeImage}
+                alt="QR Code de pagamento"
+                className="h-40 w-40 rounded-md bg-white p-2"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="outline" onClick={resetForm}>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={confirmPayment}>
+              Ja realizei pagamento
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader className="space-y-3">
         <BrandMark />
         <div>
           <CardTitle>Inscrição acadêmica</CardTitle>
-          <CardDescription>Fluxo em 3 etapas: dados, pagamento via QR Code e conclusão.</CardDescription>
+          <CardDescription>Preencha os dados para enviar sua pré-inscrição para análise.</CardDescription>
         </div>
 
         <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
@@ -181,7 +274,7 @@ export function InscricaoPage() {
           <span>Pagamento</span>
           <span>•</span>
           <span className={stepNumberClass("DONE")}>3</span>
-          <span>Conclusão</span>
+          <span>Conclusao</span>
         </div>
       </CardHeader>
 
@@ -235,62 +328,7 @@ export function InscricaoPage() {
 
             <div className="flex items-center justify-end">
               <Button type="button" onClick={() => void onSubmit()} disabled={!canSubmit || submitting}>
-                {submitting ? "Enviando..." : "Continuar para pagamento"}
-              </Button>
-            </div>
-          </>
-        ) : null}
-
-        {stage === "PAYMENT" && result ? (
-          <>
-            <div className="rounded-md border bg-muted/10 p-4">
-              <p className="text-sm font-medium">Pagamento da inscrição</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Escaneie o QR Code abaixo no app do seu banco e depois confirme o pagamento.
-              </p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-[240px_1fr] md:items-start">
-              <div className="flex justify-center rounded-md border bg-background p-4">
-                <QRCodeSVG value={qrPayload} size={200} level="M" />
-              </div>
-
-              <div className="space-y-3">
-                <div className="rounded-md border bg-muted/20 p-3 text-sm">
-                  <p className="font-medium">Resumo da inscrição</p>
-                  <p className="mt-1 text-muted-foreground">Nome: {form.fullName}</p>
-                  <p className="text-muted-foreground">Curso: {courseName}</p>
-                  <p className="text-muted-foreground">Protocolo: {result.correlationId}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Código para copiar</Label>
-                  <Input value={qrPayload} readOnly />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(qrPayload);
-                      } catch {
-                        setError("Não foi possível copiar o código automaticamente.");
-                      }
-                    }}
-                  >
-                    Copiar código
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-            <div className="flex items-center justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setStage("FORM")} disabled={submitting}>
-                Voltar
-              </Button>
-              <Button type="button" onClick={() => void confirmPayment()} disabled={submitting}>
-                {submitting ? "Confirmando..." : "Já realizei o pagamento"}
+                {submitting ? "Enviando..." : "Enviar pré-inscrição"}
               </Button>
             </div>
           </>
@@ -299,3 +337,4 @@ export function InscricaoPage() {
     </Card>
   );
 }
+

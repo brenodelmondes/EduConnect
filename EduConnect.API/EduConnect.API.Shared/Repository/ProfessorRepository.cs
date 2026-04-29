@@ -23,12 +23,20 @@ namespace EduConnect.API.Shared.Repository
 
         public Task<Professor?> ObterPorIdAsync(int id)
         {
-            return _context.Professores.FindAsync(id).AsTask();
+            return _context.Professores
+                .Include(p => p.Usuario)
+                .Include(p => p.Departamento)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<Professor>> ObterTodosAsync()
         {
-            return await _context.Professores.AsNoTracking().ToListAsync();
+            return await _context.Professores
+                .Include(p => p.Usuario)
+                .Include(p => p.Departamento)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<Professor> AtualizarAsync(Professor professor)

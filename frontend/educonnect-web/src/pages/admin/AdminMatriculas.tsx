@@ -1,13 +1,13 @@
-﻿import { useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DemoNotice } from "@/components/ui/demo-notice";
 import { Input } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/status-pill";
-import { useMatriculas } from "@/hooks/useMatriculas";
-import type { MatriculaStatus } from "@/services/matriculas.repository";
+import { Button } from "@/components/ui/button";
+import { inscricaoService, type InscricaoPendente } from "@/services/inscricao";
 
-type StatusFilter = "TODAS" | MatriculaStatus;
+type StatusFilter = "TODAS" | "PENDENTE" | "APROVADA" | "REPROVADA";
+type ViewMode = "PENDENTES" | "PROCESSADAS";
 
 const PAGE_SIZE = 20;
 
@@ -15,30 +15,91 @@ function formatDate(isoDate: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(isoDate));
 }
 
-function statusLabel(status: MatriculaStatus) {
+function statusLabel(status: string) {
   if (status === "PENDENTE") return "Pendente";
-  if (status === "CANCELADA") return "Cancelada";
-  return "Ativa";
+  if (status === "REPROVADA") return "Reprovada";
+  return "Aprovada";
 }
 
-function statusTone(status: MatriculaStatus) {
+function statusTone(status: string) {
   if (status === "PENDENTE") return "warning" as const;
-  if (status === "CANCELADA") return "danger" as const;
+  if (status === "REPROVADA") return "danger" as const;
   return "success" as const;
 }
 
 export function AdminMatriculas() {
-  const { data, loading, error } = useMatriculas();
+  const [data, setData] = useState<InscricaoPendente[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionResult, setActionResult] = useState<{
+    correlationId?: string;
+    status?: string;
+    emailSent?: boolean;
+    message?: string;
+  } | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("PENDENTES");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("TODAS");
   const [page, setPage] = useState(1);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const rows = viewMode === "PENDENTES"
+        ? await inscricaoService.listPendentes()
+        : await inscricaoService.listProcessadas(status === "TODAS" ? undefined : status);
+      setData(rows);
+    } catch (err) {
+      setError("Nao foi possivel carregar inscricoes pendentes.");
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [status, viewMode]);
+
+  const approve = useCallback(
+    async (correlationId: string) => {
+      setActionId(correlationId);
+      setActionMessage(null);
+      setActionResult(null);
+
+      try {
+        const result = await inscricaoService.aprovar(correlationId);
+        setActionMessage(result.message ?? "Inscricao aprovada com sucesso.");
+        setActionResult({
+          correlationId,
+          status: result.status,
+          emailSent: result.emailSent,
+          message: result.message,
+        });
+        await load();
+      } catch (err) {
+        const maybeResponse = err as { response?: { data?: unknown } } | null;
+        const responseMessage = typeof maybeResponse?.response?.data === "string"
+          ? maybeResponse?.response?.data
+          : null;
+        setActionMessage(responseMessage ?? "Nao foi possivel aprovar a inscricao.");
+      } finally {
+        setActionId(null);
+      }
+    },
+    [load]
+  );
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   const summary = useMemo(() => {
     const total = data.length;
     const pendentes = data.filter((row) => row.status === "PENDENTE").length;
-    const ativas = data.filter((row) => row.status === "ATIVA").length;
-    const canceladas = data.filter((row) => row.status === "CANCELADA").length;
-    return { total, pendentes, ativas, canceladas };
+    const aprovadas = data.filter((row) => row.status === "APROVADA").length;
+    const reprovadas = data.filter((row) => row.status === "REPROVADA").length;
+    return { total, pendentes, aprovadas, reprovadas };
   }, [data]);
 
   const filtered = useMemo(() => {
@@ -46,9 +107,9 @@ export function AdminMatriculas() {
     return data.filter((row) => {
       const matchesQuery =
         !q ||
-        row.aluno.toLowerCase().includes(q) ||
-        row.curso.toLowerCase().includes(q) ||
-        row.turma.toLowerCase().includes(q);
+        row.fullName.toLowerCase().includes(q) ||
+        row.email.toLowerCase().includes(q) ||
+        row.course.toLowerCase().includes(q);
       const matchesStatus = status === "TODAS" || row.status === status;
       return matchesQuery && matchesStatus;
     });
@@ -66,15 +127,15 @@ export function AdminMatriculas() {
       <div>
         <h1 className="text-3xl font-semibold">Matrículas</h1>
         <p className="text-sm text-muted-foreground">
-          Acompanhamento do fluxo de solicitação, validação e efetivação acadêmica.
+          Aprovação das inscrições pendentes para liberação do primeiro acesso.
         </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Total</p><p className="text-2xl font-semibold">{summary.total}</p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Pendentes</p><p className="text-2xl font-semibold">{summary.pendentes}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Ativas</p><p className="text-2xl font-semibold">{summary.ativas}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Canceladas</p><p className="text-2xl font-semibold">{summary.canceladas}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Aprovadas</p><p className="text-2xl font-semibold">{summary.aprovadas}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Reprovadas</p><p className="text-2xl font-semibold">{summary.reprovadas}</p></CardContent></Card>
       </div>
 
       <Card>
@@ -90,21 +151,37 @@ export function AdminMatriculas() {
               placeholder="Aluno, curso ou turma"
             />
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Status</label>
-            <select
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value as StatusFilter);
-                setPage(1);
-              }}
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="TODAS">Todas</option>
-              <option value="PENDENTE">Pendentes</option>
-              <option value="ATIVA">Ativas</option>
-              <option value="CANCELADA">Canceladas</option>
-            </select>
+          <div className="grid gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground">Lista</label>
+              <select
+                value={viewMode}
+                onChange={(e) => {
+                  setViewMode(e.target.value as ViewMode);
+                  setPage(1);
+                }}
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="PENDENTES">Pendentes</option>
+                <option value="PROCESSADAS">Processadas</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Status</label>
+              <select
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value as StatusFilter);
+                  setPage(1);
+                }}
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="TODAS">Todas</option>
+                <option value="PENDENTE">Pendentes</option>
+                <option value="APROVADA">Aprovadas</option>
+                <option value="REPROVADA">Reprovadas</option>
+              </select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -112,6 +189,35 @@ export function AdminMatriculas() {
       {error ? (
         <Card className="border-dashed">
           <CardContent className="pt-6 text-sm text-muted-foreground">{error}</CardContent>
+        </Card>
+      ) : null}
+
+      {actionMessage ? (
+        <Card className="border-dashed">
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            {actionMessage}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {actionResult ? (
+        <Card className="border-dashed">
+          <CardContent className="space-y-2 pt-6 text-sm text-muted-foreground">
+            <p>
+              Protocolo: <span className="text-foreground">{actionResult.correlationId}</span>
+            </p>
+            <p>
+              Status: <span className="text-foreground">{actionResult.status ?? "-"}</span>
+            </p>
+            <p>
+              Email enviado: <span className="text-foreground">{actionResult.emailSent ? "Sim" : "Nao"}</span>
+            </p>
+            {actionResult.message ? (
+              <p>
+                Mensagem: <span className="text-foreground">{actionResult.message}</span>
+              </p>
+            ) : null}
+          </CardContent>
         </Card>
       ) : null}
 
@@ -125,37 +231,47 @@ export function AdminMatriculas() {
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">ID</th>
+                  <th className="px-3 py-2 text-left font-medium">Protocolo</th>
                   <th className="px-3 py-2 text-left font-medium">Aluno</th>
+                  <th className="px-3 py-2 text-left font-medium">E-mail</th>
                   <th className="px-3 py-2 text-left font-medium">Curso</th>
-                  <th className="px-3 py-2 text-left font-medium">Turma</th>
                   <th className="px-3 py-2 text-left font-medium">Solicitação</th>
                   <th className="px-3 py-2 text-left font-medium">Status</th>
+                  <th className="px-3 py-2 text-left font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">
-                      Carregando matrículas...
+                    <td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">
+                      Carregando inscricoes...
                     </td>
                   </tr>
                 ) : paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">
-                      Nenhuma matrícula encontrada para os filtros atuais.
+                    <td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">
+                      Nenhuma inscricao encontrada para os filtros atuais.
                     </td>
                   </tr>
                 ) : (
                   paginated.map((row) => (
-                    <tr key={row.id} className="border-t">
-                      <td className="px-3 py-2 text-muted-foreground">{row.id}</td>
-                      <td className="px-3 py-2 font-medium">{row.aluno}</td>
-                      <td className="px-3 py-2">{row.curso}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{row.turma}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{formatDate(row.dataSolicitacao)}</td>
+                    <tr key={row.correlationId} className="border-t">
+                      <td className="px-3 py-2 text-muted-foreground">{row.correlationId}</td>
+                      <td className="px-3 py-2 font-medium">{row.fullName}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{row.email}</td>
+                      <td className="px-3 py-2">{row.course}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{formatDate(row.createdAt)}</td>
                       <td className="px-3 py-2">
                         <StatusPill label={statusLabel(row.status)} tone={statusTone(row.status)} />
+                      </td>
+                      <td className="px-3 py-2">
+                        <Button
+                          size="sm"
+                          disabled={row.status !== "PENDENTE" || actionId === row.correlationId}
+                          onClick={() => approve(row.correlationId)}
+                        >
+                          {actionId === row.correlationId ? "Aprovando..." : "Aprovar"}
+                        </Button>
                       </td>
                     </tr>
                   ))
@@ -188,7 +304,6 @@ export function AdminMatriculas() {
             </div>
           </div>
 
-          <DemoNotice />
         </CardContent>
       </Card>
     </div>

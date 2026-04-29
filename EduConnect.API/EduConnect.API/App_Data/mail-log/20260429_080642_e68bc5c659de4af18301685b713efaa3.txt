@@ -1,0 +1,12 @@
+EduConnect - E-mail Simulado de Primeiro Acesso
+Data UTC: 2026-04-29T08:06:42.2024448Z
+Protocolo: e68bc5c659de4af18301685b713efaa3
+Nome: Breno Delmondes
+Curso: CCO
+E-mail destino: bdelmondes1@yahoo.com
+
+Credenciais provisórias
+Login: bdelmondes1@yahoo.com
+Senha provisória: Edu@62D68F
+
+Observação: envio simulado para demonstração técnica.

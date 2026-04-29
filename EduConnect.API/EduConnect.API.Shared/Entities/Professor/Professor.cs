@@ -20,5 +20,8 @@ namespace EduConnect.API.Shared.Entities
         [Required]
         [StringLength(100)]
         public string Titulacao { get; set; }
+
+        public Usuario Usuario { get; set; }
+        public Departamento Departamento { get; set; }
     }
 }

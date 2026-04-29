@@ -125,15 +125,7 @@ export function LoginPage() {
           ) : null}
 
           <p className="text-xs text-muted-foreground">
-            {STRICT_API ? (
-              <>
-                Modo API estrito ativo: autenticação somente via backend.
-              </>
-            ) : preferApi ? (
-              <>
-                Conectado à API: <b>{API_URL}</b>
-              </>
-            ) : (
+            {preferApi ? null : (
               <>
                 Dica: e-mail com <b>admin</b> ou <b>prof</b> altera o perfil local.
               </>

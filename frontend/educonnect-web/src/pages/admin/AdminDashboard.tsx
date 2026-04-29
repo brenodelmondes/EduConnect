@@ -1,12 +1,13 @@
 ﻿import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 
 import { StudentsDistributionChart } from "@/components/charts/StudentsDistribution";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { StatusPill } from "@/components/ui/status-pill";
 import { adminNavItems } from "@/layouts/admin-navigation";
-import { getAdminMetrics } from "@/services/admin";
+import { fetchAdminMetrics, getAdminMetrics } from "@/services/admin";
 
 function formatPercent(value: number) {
   return `${(value * 100).toFixed(1)}%`;
@@ -27,15 +28,38 @@ function Kpi({ title, value, hint }: { title: string; value: string; hint?: stri
 }
 
 export function AdminDashboard() {
-  const m = getAdminMetrics();
+  const [metrics, setMetrics] = useState(getAdminMetrics());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchAdminMetrics()
+      .then((data) => {
+        if (mounted) setMetrics(data);
+      })
+      .catch(() => {
+        if (mounted) setMetrics(getAdminMetrics());
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const m = metrics;
   const totalDistribuido = m.distribution.reduce((acc, item) => acc + item.value, 0);
   const cursoLider =
     m.distribution.length > 0 ? [...m.distribution].sort((a, b) => b.value - a.value)[0] : null;
 
-  const updatedAt = new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date());
+  const updatedAt = useMemo(() => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date());
+  }, [loading, m.studentsTotal, m.teachersTotal, m.activeClasses]);
 
   const quickActions = adminNavItems.filter((item) => item.to !== "/admin/dashboard");
 
@@ -53,7 +77,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <DemoNotice />
+      {loading ? <DemoNotice /> : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Kpi title="Total de alunos" value={String(m.studentsTotal)} hint="Base acadêmica cadastrada" />

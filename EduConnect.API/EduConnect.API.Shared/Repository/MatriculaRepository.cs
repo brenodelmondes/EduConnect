@@ -31,8 +31,11 @@ namespace EduConnect.API.Shared.Repository
             return _context.Matriculas
                 .Include(m => m.Aluno)
                     .ThenInclude(a => a.Usuario)
+                .Include(m => m.Aluno)
+                    .ThenInclude(a => a.Curso)
                 .Include(m => m.Turma)
                     .ThenInclude(t => t.Materia)
+                        .ThenInclude(m => m.Curso)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
@@ -49,8 +52,11 @@ namespace EduConnect.API.Shared.Repository
             return await _context.Matriculas
                 .Include(m => m.Aluno)
                     .ThenInclude(a => a.Usuario)
+                .Include(m => m.Aluno)
+                    .ThenInclude(a => a.Curso)
                 .Include(m => m.Turma)
                     .ThenInclude(t => t.Materia)
+                        .ThenInclude(m => m.Curso)
                 .AsNoTracking()
                 .ToListAsync();
         }

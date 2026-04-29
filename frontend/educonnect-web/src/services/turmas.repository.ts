@@ -29,6 +29,11 @@ type ApiTurma = {
   ativo?: boolean;
   teacherId?: number | null;
   course?: string;
+  cursoNome?: string;
+  professorNome?: string;
+  semestre?: string;
+  local?: string;
+  materiaNome?: string;
 
   Id?: number | string;
   Codigo?: string;
@@ -42,6 +47,9 @@ type ApiTurma = {
   Ativo?: boolean;
   TeacherId?: number | null;
   Course?: string;
+  Semestre?: string;
+  Local?: string;
+  MateriaNome?: string;
 };
 
 function asModalidade(raw: unknown): TurmaRow["modalidade"] {
@@ -79,7 +87,14 @@ function demoTurmas(): TurmaRow[] {
 
 function mapApiTurma(row: ApiTurma, index: number): TurmaRow {
   const id = row.id ?? row.Id ?? `api_turma_${index + 1}`;
-  const curso = row.cursoNome ?? row.CursoNome ?? row.course ?? row.Course ?? "Curso";
+  const curso =
+    row.cursoNome ??
+    row.CursoNome ??
+    row.course ??
+    row.Course ??
+    row.materiaNome ??
+    row.MateriaNome ??
+    "Curso";
   const professor = row.professorNome ?? row.ProfessorNome ?? "A definir";
   const codigo =
     row.codigo ??
@@ -90,14 +105,16 @@ function mapApiTurma(row: ApiTurma, index: number): TurmaRow {
   const vagas = row.vagas ?? row.Vagas ?? 45;
   const matriculados = row.matriculados ?? row.Matriculados ?? Math.max(10, (index * 9) % 40);
   const ativo = row.ativo ?? row.Ativo ?? true;
+  const periodo = row.periodo ?? row.Periodo ?? row.semestre ?? row.Semestre ?? "Noturno";
+  const modalidade = asModalidade(row.modalidade ?? row.Modalidade);
 
   return {
     id: String(id),
     codigo: String(codigo),
     curso: String(curso),
     professor: String(professor),
-    modalidade: asModalidade(row.modalidade ?? row.Modalidade),
-    periodo: String(row.periodo ?? row.Periodo ?? "Noturno"),
+    modalidade,
+    periodo: String(periodo),
     vagas,
     matriculados,
     status: normalizeStatus({ ativo, professor: String(professor) }),
@@ -119,15 +136,12 @@ export const turmasRepository = {
       const res = await api.get<ApiTurma[]>("/Turmas");
       const data = Array.isArray(res.data) ? res.data : [];
       if (data.length === 0) {
-        if (STRICT_API) {
-          throw new Error("API retornou lista vazia de turmas em modo estrito");
-        }
-        return fallback;
+        return [];
       }
       return data.map(mapApiTurma);
     } catch (error) {
-      if (STRICT_API) throw error;
-      return fallback;
+      if (USE_DEMO_FALLBACK) return fallback;
+      throw error;
     }
   },
 };

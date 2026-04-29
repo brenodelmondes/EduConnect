@@ -1,0 +1,24 @@
+EduConnect - Log de E-mail de Primeiro Acesso
+Data UTC: 2026-04-29T19:48:11.6678867Z
+Protocolo: 37393b24afb745d8b09b52b1a516ba85
+Status inscrição: APROVADA
+Nome: Breno Delmondes TIVIT
+E-mail destino: breno.delmondes@tivit.com
+Curso: CCO
+Turma: CCO1
+Observação: E-mail enviado com sucesso via SMTP e registrado em log.
+
+--- Corpo do e-mail ---
+Olá, Breno Delmondes TIVIT.
+
+Sua inscrição foi aprovada no EduConnect.
+Curso: CCO
+Turma: CCO1
+
+Credenciais de primeiro acesso:
+Login: breno.delmondes@tivit.com
+Senha provisória: Edu@afd54054
+
+Acesse: http://localhost:5173/login
+No primeiro login, altere sua senha por segurança.
+

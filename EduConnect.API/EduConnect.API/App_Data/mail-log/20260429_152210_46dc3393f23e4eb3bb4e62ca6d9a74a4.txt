@@ -1,0 +1,24 @@
+EduConnect - Log de E-mail de Primeiro Acesso
+Data UTC: 2026-04-29T15:22:10.6787091Z
+Protocolo: 46dc3393f23e4eb3bb4e62ca6d9a74a4
+Status inscrição: APROVADA
+Nome: Breno Delmondes
+E-mail destino: breno.delmondes@sptech.school
+Curso: SI
+Turma: SI1
+Observação: SMTP não configurado. E-mail salvo em log para demonstração.
+
+--- Corpo do e-mail ---
+Olá, Breno Delmondes.
+
+Sua inscrição foi aprovada no EduConnect.
+Curso: SI
+Turma: SI1
+
+Credenciais de primeiro acesso:
+Login: breno.delmondes@sptech.school
+Senha provisória: Edu@16eda651
+
+Acesse: http://localhost:5173/login
+No primeiro login, altere sua senha por segurança.
+
