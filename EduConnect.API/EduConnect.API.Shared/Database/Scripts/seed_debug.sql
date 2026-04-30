@@ -83,7 +83,7 @@ BEGIN TRY
         ('Martins'), ('Carvalho'), ('Araujo'), ('Moura'), ('Cardoso'), ('Teixeira'), ('Freitas');
 
     DECLARE @i INT = 1;
-    WHILE @i <= 8
+    PRINT 'Loop 1'; WHILE @i <= 8
     BEGIN
         DECLARE @ProfEmail NVARCHAR(120) = CONCAT('professor', RIGHT('00' + CAST(@i AS NVARCHAR(2)), 2), '@educonnect.com');
         DECLARE @ProfNome NVARCHAR(50) = (
@@ -122,7 +122,7 @@ BEGIN TRY
 
     DECLARE @TurmaCount INT = 10;
     SET @i = 1;
-    WHILE @i <= @TurmaCount
+    PRINT 'Loop 2'; WHILE @i <= @TurmaCount
     BEGIN
         DECLARE @MateriaId INT = (SELECT MateriaId FROM @Materias WHERE Idx = ((@i - 1) % (SELECT COUNT(1) FROM @Materias)) + 1);
         DECLARE @ProfessorId INT = (SELECT ProfessorId FROM @Professores WHERE Idx = ((@i - 1) % (SELECT COUNT(1) FROM @Professores)) + 1);
@@ -161,7 +161,7 @@ BEGIN TRY
     );
 
     SET @i = 1;
-    WHILE @i <= 50
+    PRINT 'Loop 3/4'; WHILE @i <= 50
     BEGIN
         DECLARE @AlunoEmail NVARCHAR(120) = CONCAT('aluno', RIGHT('000' + CAST(@i AS NVARCHAR(3)), 3), '@educonnect.com');
         DECLARE @AlunoNome NVARCHAR(50) = (
@@ -195,7 +195,7 @@ BEGIN TRY
     SELECT Id, CursoId FROM Alunos ORDER BY Id;
 
     SET @i = 1;
-    WHILE @i <= 50
+    PRINT 'Loop 3/4'; WHILE @i <= 50
     BEGIN
         DECLARE @AlunoId INT = (SELECT AlunoId FROM @Alunos WHERE Idx = @i);
         DECLARE @TurmaId INT = (
@@ -224,5 +224,6 @@ SELECT COUNT(1) AS TotalAlunos FROM Alunos;
 SELECT COUNT(1) AS TotalProfessores FROM Professores;
 SELECT COUNT(1) AS TotalTurmas FROM Turmas;
 SELECT COUNT(1) AS TotalMatriculas FROM Matriculas;
+
 
 

@@ -59,12 +59,12 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("Professores");
 
-            entity.HasOne<Usuario>()
+            entity.HasOne(e => e.Usuario)
                 .WithMany()
                 .HasForeignKey(e => e.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne<Departamento>()
+            entity.HasOne(e => e.Departamento)
                 .WithMany()
                 .HasForeignKey(e => e.DepartamentoId)
                 .OnDelete(DeleteBehavior.Restrict);
